@@ -20,18 +20,19 @@ public sealed partial class ModeManagerPlugin
             }
 
             var key = (_initialModeKeyQueued ?? string.Empty).Trim();
-            _initialModeQueued = false;
-
             if (string.IsNullOrWhiteSpace(key))
+            {
+                _initialModeQueued = false;
                 return;
+            }
 
             if (!Config.Modes.TryGetValue(key, out var mode))
             {
+                _initialModeQueued = false;
                 LogError(Msg(MessageKey.LogInitialModeKeyNotFound, key));
                 return;
             }
 
-            _initialModeApplied = true;
             var safeDelay = Math.Max(3, Config.SwitchDelaySeconds);
 
             CancelPendingSwitch("startup_reschedule");

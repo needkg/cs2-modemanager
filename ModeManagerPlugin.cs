@@ -36,6 +36,7 @@ public sealed partial class ModeManagerPlugin : BasePlugin, IPluginConfig<ModeMa
     {
         ConfigValidator.ValidateOrThrow(config);
         Config = config;
+        SeedActiveModeFromConfigIfUnknown(config);
         ApplyLanguage(config.Language);
     }
 
@@ -72,5 +73,20 @@ public sealed partial class ModeManagerPlugin : BasePlugin, IPluginConfig<ModeMa
         CancelPendingSwitch("unload");
         _vote = null;
         LogInfo(Msg(MessageKey.LogPluginUnloaded, hotReload));
+    }
+
+    private void SeedActiveModeFromConfigIfUnknown(ModeManagerConfig config)
+    {
+        if (!string.IsNullOrWhiteSpace(_activeModeKey))
+            return;
+
+        var initialModeKey = (config.InitialModeKey ?? string.Empty).Trim();
+        if (string.IsNullOrWhiteSpace(initialModeKey))
+            return;
+
+        if (!config.Modes.ContainsKey(initialModeKey))
+            return;
+
+        _activeModeKey = initialModeKey;
     }
 }

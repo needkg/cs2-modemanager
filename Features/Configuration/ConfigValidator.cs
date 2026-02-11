@@ -5,6 +5,15 @@ namespace ModeManager;
 
 internal static class ConfigValidator
 {
+    private static readonly string[] _reservedBaseCommands =
+    {
+        "css_mm",
+        "css_modes",
+        "css_setmode",
+        "css_mm_vote",
+        "css_mm_reload"
+    };
+
     public static void ValidateOrThrow(ModeManagerConfig config)
     {
         var messages = MessageLocalizer.Create(config.Language);
@@ -67,6 +76,43 @@ internal static class ConfigValidator
 
             if (mode.GameMode is < 0 or > 20)
                 throw new Exception(messages.Format(MessageKey.ValidationGameModeInvalid, modeKey, mode.GameMode));
+        }
+
+        ValidateDynamicCommandNames(config, messages);
+    }
+
+    private static void ValidateDynamicCommandNames(ModeManagerConfig config, MessageLocalizer messages)
+    {
+        var reserved = new HashSet<string>(_reservedBaseCommands, StringComparer.OrdinalIgnoreCase);
+        var generated = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (KeyValuePair<string, ModeDefinition> entry in config.Modes)
+        {
+            var modeKey = (entry.Key ?? string.Empty).Trim();
+            if (string.IsNullOrWhiteSpace(modeKey))
+                continue;
+
+            var safeKey = CommandNameSanitizer.ToSafeToken(modeKey);
+            var commandName = $"css_{safeKey}";
+
+            if (reserved.Contains(commandName))
+            {
+                throw new Exception(messages.Format(
+                    MessageKey.ValidationDynamicCommandConflictsBase,
+                    modeKey,
+                    commandName));
+            }
+
+            if (generated.TryGetValue(commandName, out var previousModeKey))
+            {
+                throw new Exception(messages.Format(
+                    MessageKey.ValidationDynamicCommandCollision,
+                    modeKey,
+                    previousModeKey,
+                    commandName));
+            }
+
+            generated[commandName] = modeKey;
         }
     }
 }

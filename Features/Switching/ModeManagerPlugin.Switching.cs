@@ -42,10 +42,10 @@ public sealed partial class ModeManagerPlugin
         if (pending == null)
             return;
 
+        var isStartupInitialSwitch = pending.Reason.StartsWith("startup_", StringComparison.OrdinalIgnoreCase);
+
         _pending = null;
         TryKillTimer(pending.TimerHandle);
-
-        _cooldownUntilUtc = DateTime.UtcNow.AddSeconds(Config.SwitchCooldownSeconds);
 
         if (_switcher == null)
         {
@@ -58,7 +58,15 @@ public sealed partial class ModeManagerPlugin
 
         if (_switcher.TrySwitchTo(pending.Mode, Config, out var targetMap, out var error))
         {
+            _cooldownUntilUtc = DateTime.UtcNow.AddSeconds(Config.SwitchCooldownSeconds);
             _activeModeKey = pending.Mode.Key;
+
+            if (isStartupInitialSwitch)
+            {
+                _initialModeApplied = true;
+                _initialModeQueued = false;
+            }
+
             LogInfo(Msg(MessageKey.LogModeApplied, pending.Mode.DisplayName, targetMap));
             ChatAll(Msg(MessageKey.ChatModeChanged, pending.Mode.DisplayName));
         }
@@ -66,6 +74,9 @@ public sealed partial class ModeManagerPlugin
         {
             LogError(Msg(MessageKey.LogModeApplyFailed, pending.Mode.DisplayName, error));
             ChatAll(Msg(MessageKey.ChatModeApplyFailed, pending.Mode.DisplayName));
+
+            if (isStartupInitialSwitch && !_initialModeApplied && _initialModeQueued)
+                StartInitialModeWatcher();
         }
     }
 

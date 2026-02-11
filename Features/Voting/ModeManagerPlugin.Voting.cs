@@ -54,6 +54,11 @@ public sealed partial class ModeManagerPlugin
         }
 
         CleanupExpiredVoteIfNeeded();
+        if (_vote != null && !_vote.ModeKey.Equals(mode.Key, StringComparison.OrdinalIgnoreCase))
+        {
+            cmd.ReplyToCommand(Msg(MessageKey.VoteAnotherModeInProgress, _vote.ModeKey));
+            return;
+        }
 
         var eligiblePlayers = PlayerEligibility.CountEligiblePlayers();
         if (eligiblePlayers < Config.VoteMinPlayers)
@@ -64,7 +69,7 @@ public sealed partial class ModeManagerPlugin
 
         var requiredVotes = VoteMath.RequiredVotes(eligiblePlayers, Config.VoteRatio);
 
-        if (_vote == null || !_vote.ModeKey.Equals(mode.Key, StringComparison.OrdinalIgnoreCase))
+        if (_vote == null)
         {
             _vote = new VoteSession(
                 modeKey: mode.Key,

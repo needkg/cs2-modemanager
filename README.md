@@ -44,6 +44,7 @@ Only supported config path:
 
 - `addons/counterstrikesharp/configs/plugins/ModeManager/ModeManager.json`
 - Any other JSON path is ignored by config reload.
+- Mode keys must generate unique dynamic commands after sanitization and must not conflict with reserved base commands.
 
 Example configuration:
 
@@ -92,6 +93,7 @@ Example configuration:
 - Server console schedules a switch directly (no vote required).
 - HLTV and bot players are excluded from voting.
 - Voting for the currently active mode is rejected.
+- A vote already in progress cannot be replaced by a vote for another mode.
 - Required votes = `ceil(eligible_players * VoteRatio)`.
 - Votes expire after `VoteDurationSeconds`.
 - After approval, switch execution waits for `SwitchDelaySeconds`.
