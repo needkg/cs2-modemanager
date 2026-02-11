@@ -59,6 +59,7 @@
   "ChatModeChanged": "Modo alterado para '{0}'.",
   "ChatModeApplyFailed": "Falha ao aplicar modo '{0}'. Ver console do servidor.",
 
+  "ReloadNoPermission": "[ERROR] Voce nao tem permissao para usar !mm_reload.",
   "ReloadConfigSuccess": "[OK] Configuracao recarregada do disco.",
   "ReloadConfigNotFound": "[INFO] Arquivo JSON de configuracao nao encontrado no disco ({0}). Reconstruindo comandos com a configuracao em memoria.",
   "ReloadCommandsRebuilt": "[OK] Comandos dinamicos reconstruidos.",

@@ -84,7 +84,7 @@ Exemplo de configuracao:
 - `css_modes` (`!modes`): lista os modos disponiveis.
 - `css_setmode <key>` (`!setmode <key>`): inicia ou participa da votacao.
 - `css_mm_vote` (`!mm_vote`): mostra status da votacao/troca pendente.
-- `css_mm_reload` (`!mm_reload`): recarrega config do disco e reconstrui comandos dinamicos.
+- `css_mm_reload` (`!mm_reload`): recarrega config do disco e reconstrui comandos dinamicos (somente admin com `@css/root` ou console).
 - `css_<key>` (`!<key>`): atalho dinamico para votar diretamente em um modo.
 
 ## Fluxo de Votacao

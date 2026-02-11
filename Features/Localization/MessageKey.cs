@@ -68,6 +68,7 @@ internal enum MessageKey
     ChatModeApplyFailed,
 
     // Config reload
+    ReloadNoPermission,
     ReloadConfigSuccess,
     ReloadConfigNotFound,
     ReloadCommandsRebuilt,
