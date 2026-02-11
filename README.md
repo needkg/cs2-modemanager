@@ -1,23 +1,23 @@
 # ModeManager
 
-Mode manager para servidores CS2 com CounterStrikeSharp, com troca de modo por votacao, execucao segura com delay/cooldown, comandos dinamicos e reload de configuracao em runtime.
+Mode manager for CS2 servers using CounterStrikeSharp, with vote-based mode switching, safe delayed/cooldown execution, dynamic commands, and runtime config reload.
 
-## Recursos
+## Features
 
-- Votacao de troca de modo com quorum proporcional (`VoteRatio`), tempo de expiracao e minimo de jogadores.
-- Um voto por jogador (SteamID, com fallback para UserId).
-- Cooldown entre trocas para evitar spam.
-- Aplicacao de modo previsivel: `ResetCommand`, unload/load de plugins por modo, `ExecCommand`, `game_type`/`game_mode` (opcional) e `changelevel` com mapa definido no modo, mapa atual ou `de_dust2`.
-- Comandos dinamicos gerados a partir das chaves em `Modes` (`css_<modeKey>` sanitizado).
-- Modo inicial automatico no startup quando o primeiro jogador humano valido entra.
-- Reload de config em runtime (`css_mm_reload`) com validacao e rebuild dos comandos dinamicos.
-- Localizacao com catalogos `en` e `pt-BR` (fallback seguro).
+- Vote-based mode switching with proportional quorum (`VoteRatio`), vote expiration, and minimum player count.
+- One vote per player (SteamID, with UserId fallback).
+- Cooldown between switches to prevent spam.
+- Predictable mode apply pipeline: `ResetCommand`, per-mode plugin unload/load, `ExecCommand`, optional `game_type`/`game_mode`, and `changelevel` using mode map, current map, or `de_dust2`.
+- Dynamic mode commands generated from `Modes` keys (`css_<modeKey>`, sanitized).
+- Automatic initial mode scheduling on startup when the first valid human player joins.
+- Runtime config reload (`css_mm_reload`) with validation and dynamic command rebuild.
+- Localization with `en` and `pt-BR` catalogs (safe fallback behavior).
 
-## Requisitos
+## Requirements
 
-- .NET 8 SDK (para compilar localmente)
-- CounterStrikeSharp API compativel (`CounterStrikeSharp.API` 1.0.284 no projeto)
-- Servidor CS2 com CounterStrikeSharp instalado
+- .NET 8 SDK (for local build)
+- Compatible CounterStrikeSharp API (`CounterStrikeSharp.API` 1.0.284 in this project)
+- CS2 server with CounterStrikeSharp installed
 
 ## Build
 
@@ -26,30 +26,30 @@ dotnet restore
 dotnet build ModeManager.sln -c Release
 ```
 
-Arquivos principais gerados:
+Main build outputs:
 
 - `bin/Release/net8.0/ModeManager.dll`
 - `bin/Release/net8.0/ModeManager.deps.json`
 - `bin/Release/net8.0/lang/en.json`
 - `bin/Release/net8.0/lang/pt-BR.json`
 
-## Instalacao
+## Installation
 
-- Copie os binarios para a pasta de plugins do CounterStrikeSharp no servidor.
-- Mantenha a pasta `lang` junto ao plugin para carregar mensagens externas.
+- Copy the binaries to your CounterStrikeSharp plugin directory on the server.
+- Keep the `lang` folder next to the plugin so external message files can be loaded.
 
-## Configuracao
+## Configuration
 
-Caminho unico suportado:
+Only supported config path:
 
 - `addons/counterstrikesharp/configs/plugins/ModeManager/ModeManager.json`
-- Qualquer outro caminho de JSON nao e considerado no reload de configuracao.
+- Any other JSON path is ignored by config reload.
 
-Exemplo de configuracao:
+Example configuration:
 
 ```json
 {
-  "Language": "pt-BR",
+  "Language": "en",
   "InitialModeKey": "retake",
   "ApplyInitialModeOnStartup": true,
   "ResetCommand": "exec cfg/modes/reset.cfg",
@@ -78,42 +78,42 @@ Exemplo de configuracao:
 }
 ```
 
-## Comandos
+## Commands
 
-- `css_mm` (`!mm`): ajuda geral.
-- `css_modes` (`!modes`): lista os modos disponiveis.
-- `css_setmode <key>` (`!setmode <key>`): inicia ou participa da votacao.
-- `css_mm_vote` (`!mm_vote`): mostra status da votacao/troca pendente.
-- `css_mm_reload` (`!mm_reload`): recarrega config do disco e reconstrui comandos dinamicos (somente admin com `@css/root` ou console).
-- `css_<key>` (`!<key>`): atalho dinamico para votar diretamente em um modo.
+- `css_mm` (`!mm`): show general help.
+- `css_modes` (`!modes`): list available modes.
+- `css_setmode <key>` (`!setmode <key>`): start or join a mode vote.
+- `css_mm_vote` (`!mm_vote`): show current vote/pending switch status.
+- `css_mm_reload` (`!mm_reload`): reload config from disk and rebuild dynamic commands (admin with `@css/root` or server console only).
+- `css_<key>` (`!<key>`): dynamic shortcut command to vote directly for a mode.
 
-## Fluxo de Votacao
+## Voting Flow
 
-- Console do servidor agenda troca sem passar por votacao.
-- Jogadores HLTV/bot nao contam para voto.
-- Votos necessarios = `ceil(jogadores_elegiveis * VoteRatio)`.
-- A votacao expira em `VoteDurationSeconds`.
-- Ao aprovar, a troca respeita `SwitchDelaySeconds`.
-- Depois de aplicar, o plugin ativa `SwitchCooldownSeconds`.
+- Server console schedules a switch directly (no vote required).
+- HLTV and bot players are excluded from voting.
+- Required votes = `ceil(eligible_players * VoteRatio)`.
+- Votes expire after `VoteDurationSeconds`.
+- After approval, switch execution waits for `SwitchDelaySeconds`.
+- After apply, `SwitchCooldownSeconds` is enforced before another switch.
 
-## Reload e Operacao
+## Reload Behavior
 
-- `css_mm_reload` tenta recarregar o JSON do disco.
-- Se o arquivo nao for encontrado, o plugin continua com a config em memoria.
-- Ao recarregar, votos pendentes/cooldown sao limpos.
-- Comandos dinamicos sao sempre reconstruidos apos reload.
+- `css_mm_reload` attempts to reload JSON from disk.
+- If the file is not found, the plugin continues using in-memory config.
+- On reload, pending votes and cooldown are cleared.
+- Dynamic mode commands are always rebuilt after reload.
 
-## Estrutura
+## Project Structure
 
-- `ModeManagerPlugin.cs`: metadados e lifecycle.
-- `Features/Commands`: comandos base e dinamicos.
-- `Features/Voting`: sessao e regras de voto.
-- `Features/Switching`: agendamento e aplicacao de modo.
-- `Features/Configuration`: modelo, validacao, descoberta e reload.
-- `Features/Startup`: modo inicial no primeiro jogador valido.
-- `Features/Localization` e `lang/*.json`: mensagens localizadas.
-- `Shared/`: logging, resolver de mapa e sanitizacao de comandos.
+- `ModeManagerPlugin.cs`: plugin metadata and lifecycle.
+- `Features/Commands`: base and dynamic commands.
+- `Features/Voting`: vote session and vote rules.
+- `Features/Switching`: scheduling and mode apply logic.
+- `Features/Configuration`: config model, validation, discovery, and reload.
+- `Features/Startup`: initial mode on first valid player.
+- `Features/Localization` and `lang/*.json`: localized messages.
+- `Shared/`: logging, map resolver, and command sanitization utilities.
 
-## Licenca
+## License
 
-Este projeto esta licenciado sob a MIT License. Veja `LICENSE`.
+This project is licensed under the MIT License. See `LICENSE`.
