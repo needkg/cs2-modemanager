@@ -91,6 +91,7 @@ Example configuration:
 
 - Server console schedules a switch directly (no vote required).
 - HLTV and bot players are excluded from voting.
+- Voting for the currently active mode is rejected.
 - Required votes = `ceil(eligible_players * VoteRatio)`.
 - Votes expire after `VoteDurationSeconds`.
 - After approval, switch execution waits for `SwitchDelaySeconds`.

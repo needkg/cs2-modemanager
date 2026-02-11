@@ -58,6 +58,7 @@ public sealed partial class ModeManagerPlugin
 
         if (_switcher.TrySwitchTo(pending.Mode, Config, out var targetMap, out var error))
         {
+            _activeModeKey = pending.Mode.Key;
             LogInfo(Msg(MessageKey.LogModeApplied, pending.Mode.DisplayName, targetMap));
             ChatAll(Msg(MessageKey.ChatModeChanged, pending.Mode.DisplayName));
         }

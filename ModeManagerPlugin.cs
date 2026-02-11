@@ -26,6 +26,7 @@ public sealed partial class ModeManagerPlugin : BasePlugin, IPluginConfig<ModeMa
     private VoteSession? _vote;
     private DateTime _cooldownUntilUtc = DateTime.MinValue;
     private PendingSwitch? _pending;
+    private string? _activeModeKey;
 
     private bool _initialModeQueued;
     private string? _initialModeKeyQueued;

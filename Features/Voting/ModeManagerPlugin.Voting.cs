@@ -8,6 +8,12 @@ public sealed partial class ModeManagerPlugin
 {
     private void HandleVote(CCSPlayerController? player, CommandInfo cmd, ModeDefinition mode)
     {
+        if (IsModeAlreadyActive(mode))
+        {
+            cmd.ReplyToCommand(Msg(MessageKey.VoteAlreadyActiveMode, mode.DisplayName));
+            return;
+        }
+
         if (player == null)
         {
             ScheduleModeSwitch(mode, "console");
@@ -108,4 +114,8 @@ public sealed partial class ModeManagerPlugin
             _vote = null;
         }
     }
+
+    private bool IsModeAlreadyActive(ModeDefinition mode) =>
+        !string.IsNullOrWhiteSpace(_activeModeKey) &&
+        _activeModeKey.Equals(mode.Key, StringComparison.OrdinalIgnoreCase);
 }

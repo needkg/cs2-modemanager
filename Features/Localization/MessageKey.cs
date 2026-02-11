@@ -53,6 +53,7 @@ internal enum MessageKey
     VoteCooldown,
     VoteIneligible,
     VoteIdentityMissing,
+    VoteAlreadyActiveMode,
     VoteMinPlayers,
     VoteStartedChat,
     VoteRegisteredSelf,

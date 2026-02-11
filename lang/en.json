@@ -46,6 +46,7 @@
   "VoteCooldown": "[INFO] Please wait {0}s before starting or voting for another mode switch.",
   "VoteIneligible": "[INFO] Bots/HLTV are not eligible to vote.",
   "VoteIdentityMissing": "[ERROR] Could not identify your SteamID/UserId to vote.",
+  "VoteAlreadyActiveMode": "[INFO] Mode '{0}' is already active.",
   "VoteMinPlayers": "[INFO] Minimum players required to vote: {0}. Current: {1}.",
   "VoteStartedChat": "Vote started to switch to '{0}'. Votes: 1/{1}. Type !{2} to vote.",
   "VoteRegisteredSelf": "[OK] You voted for '{0}'. 1/{1}.",
