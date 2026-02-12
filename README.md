@@ -82,7 +82,7 @@ Example configuration:
 ## Commands
 
 - `css_nmm` (`!nmm`): show general help.
-- `css_nmm_modes` (`!nmm_modes`): list available modes.
+- `css_modes` (`!modes`): list available modes.
 - `css_nmm_setmode <key>` (`!nmm_setmode <key>`): start or join a mode vote.
 - `css_nmm_vote` (`!nmm_vote`): show current vote/pending switch status.
 - `css_nmm_reload` (`!nmm_reload`): reload config from disk and rebuild dynamic commands (admin with `@css/root` or server console only).

@@ -26,7 +26,7 @@
   "HelpTitle": "=== nModeManager ===",
   "HelpCommandsLabel": "Commands:",
   "HelpLineMm": "  !nmm               -> help",
-  "HelpLineModes": "  !nmm_modes         -> list available modes",
+  "HelpLineModes": "  !modes             -> list available modes",
   "HelpLineSetMode": "  !nmm_setmode <key> -> vote to switch mode",
   "HelpLineDynamicMode": "  !<key>             -> vote for a mode (dynamic command from config)",
   "HelpLineVoteStatus": "  !nmm_vote          -> vote status",

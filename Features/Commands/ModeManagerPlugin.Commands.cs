@@ -13,7 +13,7 @@ public sealed partial class ModeManagerPlugin
             return;
 
         AddCommand("css_nmm", Msg(MessageKey.CmdDescHelp), CmdHelp);
-        AddCommand("css_nmm_modes", Msg(MessageKey.CmdDescModes), CmdListModes);
+        AddCommand("css_modes", Msg(MessageKey.CmdDescModes), CmdListModes);
 
         AddCommand("css_nmm_setmode", Msg(MessageKey.CmdDescSetMode), CmdVoteSetMode);
         AddCommand("css_nmm_vote", Msg(MessageKey.CmdDescVoteStatus), CmdVoteStatus);

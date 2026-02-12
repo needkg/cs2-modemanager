@@ -26,7 +26,7 @@
   "HelpTitle": "=== nModeManager ===",
   "HelpCommandsLabel": "Comandos:",
   "HelpLineMm": "  !nmm               -> ajuda",
-  "HelpLineModes": "  !nmm_modes         -> listar modos disponiveis",
+  "HelpLineModes": "  !modes             -> listar modos disponiveis",
   "HelpLineSetMode": "  !nmm_setmode <key> -> votar para trocar de modo",
   "HelpLineDynamicMode": "  !<key>             -> votar em um modo (comando dinamico via config)",
   "HelpLineVoteStatus": "  !nmm_vote          -> status da votacao",

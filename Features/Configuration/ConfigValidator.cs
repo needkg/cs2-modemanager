@@ -8,7 +8,7 @@ internal static class ConfigValidator
     private static readonly string[] _reservedBaseCommands =
     {
         "css_nmm",
-        "css_nmm_modes",
+        "css_modes",
         "css_nmm_setmode",
         "css_nmm_vote",
         "css_nmm_reload"
