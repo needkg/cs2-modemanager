@@ -53,7 +53,7 @@ Example configuration:
   "Language": "en",
   "InitialModeKey": "retake",
   "ApplyInitialModeOnStartup": true,
-  "ResetCommand": "exec cfg/modes/reset.cfg",
+  "ResetCommand": "exec nmodemanager/reset.cfg",
   "VoteRatio": 0.75,
   "VoteMinPlayers": 1,
   "VoteDurationSeconds": 25,
@@ -64,7 +64,7 @@ Example configuration:
     "retake": {
       "Key": "retake",
       "DisplayName": "Retake",
-      "ExecCommand": "exec cfg/modes/retake.cfg",
+      "ExecCommand": "exec nmodemanager/retake.cfg",
       "DefaultMap": "de_inferno",
       "GameType": 0,
       "GameMode": 0,
