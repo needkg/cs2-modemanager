@@ -80,6 +80,7 @@
   "ValidationSwitchDelayRange": "SwitchDelaySeconds deve estar entre 0 e 600.",
   "ValidationModeNull": "Modes['{0}'] esta null.",
   "ValidationExecCommandRequired": "Modes['{0}'].ExecCommand nao pode ser vazio.",
+  "ValidationSelfUnloadForbidden": "Modes['{0}'].PluginsToUnload nao pode incluir '{1}' (self-unload bloqueado).",
   "ValidationDynamicCommandConflictsBase": "Modes['{0}'] gera o comando '{1}', que conflita com um comando base reservado.",
   "ValidationDynamicCommandCollision": "Modes['{0}'] e Modes['{1}'] geram o mesmo comando dinamico '{2}'.",
   "ValidationDefaultMapInvalid": "Modes['{0}'].DefaultMap e invalido (nao pode conter espacos/aspas): {1}",

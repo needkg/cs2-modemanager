@@ -5,6 +5,12 @@ namespace ModeManager;
 
 internal static class ConfigValidator
 {
+    private static readonly string[] _selfPluginAliases =
+    {
+        "nModeManager",
+        "nModeManager.dll"
+    };
+
     private static readonly string[] _reservedBaseCommands =
     {
         "css_nmm",
@@ -64,6 +70,14 @@ internal static class ConfigValidator
             if (string.IsNullOrWhiteSpace(mode.ExecCommand))
                 throw new Exception(messages.Format(MessageKey.ValidationExecCommandRequired, modeKey));
 
+            if (ContainsSelfPluginInUnload(mode.PluginsToUnload))
+            {
+                throw new Exception(messages.Format(
+                    MessageKey.ValidationSelfUnloadForbidden,
+                    modeKey,
+                    _selfPluginAliases[0]));
+            }
+
             if (!string.IsNullOrWhiteSpace(mode.DefaultMap))
             {
                 var map = mode.DefaultMap.Trim();
@@ -79,6 +93,27 @@ internal static class ConfigValidator
         }
 
         ValidateDynamicCommandNames(config, messages);
+    }
+
+    private static bool ContainsSelfPluginInUnload(List<string>? pluginsToUnload)
+    {
+        if (pluginsToUnload == null || pluginsToUnload.Count == 0)
+            return false;
+
+        foreach (var pluginName in pluginsToUnload)
+        {
+            if (string.IsNullOrWhiteSpace(pluginName))
+                continue;
+
+            var trimmed = pluginName.Trim();
+            foreach (var alias in _selfPluginAliases)
+            {
+                if (string.Equals(trimmed, alias, StringComparison.OrdinalIgnoreCase))
+                    return true;
+            }
+        }
+
+        return false;
     }
 
     private static void ValidateDynamicCommandNames(ModeManagerConfig config, MessageLocalizer messages)
