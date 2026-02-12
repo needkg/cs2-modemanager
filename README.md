@@ -114,12 +114,6 @@
 
 - Supported languages: `en`, `pt-BR`.
 - Change language with `Language` in config.
-- Chat prefix is controlled by `ChatPrefix` in language files.
-
-Language files:
-
-- `lang/en.json`
-- `lang/pt-BR.json`
 
 ## Troubleshooting
 
