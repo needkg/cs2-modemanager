@@ -8,6 +8,7 @@ Mode manager for CS2 servers using CounterStrikeSharp, with vote-based mode swit
 - One vote per player (SteamID, with UserId fallback).
 - Cooldown between switches to prevent spam.
 - Predictable mode apply pipeline: `ResetCommand`, per-mode plugin unload/load, `ExecCommand`, optional `game_type`/`game_mode`, and `changelevel` using mode map, current map, or `de_dust2`.
+- Automatic reset cfg provisioning: if `ResetCommand` is `exec <relative>.cfg` (example: `exec nmodemanager/reset.cfg`), the plugin creates the missing file under `cfg/`.
 - Dynamic mode commands generated from `Modes` keys (`css_<modeKey>`, sanitized).
 - Automatic initial mode scheduling on startup when the first valid human player joins.
 - Runtime config reload (`css_nmm_reload`) with validation and dynamic command rebuild.

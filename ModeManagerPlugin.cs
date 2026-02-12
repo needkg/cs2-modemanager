@@ -43,6 +43,7 @@ public sealed partial class ModeManagerPlugin : BasePlugin, IPluginConfig<ModeMa
     public override void Load(bool hotReload)
     {
         _switcher = new ModeSwitcher(new ServerCommandRunner());
+        EnsureResetCfgFileExists();
         LogInfo(Msg(MessageKey.LogPluginLoaded, hotReload));
     }
 

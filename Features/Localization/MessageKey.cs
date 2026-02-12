@@ -19,6 +19,8 @@ internal enum MessageKey
     LogApplyingMode,
     LogModeApplied,
     LogModeApplyFailed,
+    LogResetCfgCreated,
+    LogResetCfgCreateFailed,
 
     // Command descriptions
     CmdDescHelp,

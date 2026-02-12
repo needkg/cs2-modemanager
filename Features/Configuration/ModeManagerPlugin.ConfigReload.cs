@@ -42,6 +42,8 @@ public sealed partial class ModeManagerPlugin
                 LogError(Msg(MessageKey.LogReloadConfigNotFound, error));
             }
 
+            EnsureResetCfgFileExists();
+
             _vote = null;
             CancelPendingSwitch("reload");
             _cooldownUntilUtc = DateTime.MinValue;

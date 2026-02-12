@@ -15,6 +15,8 @@
   "LogApplyingMode": "Applying mode '{0}' (reason={1}, exec={2})",
   "LogModeApplied": "Mode '{0}' applied. changelevel '{1}'.",
   "LogModeApplyFailed": "Failed to apply mode '{0}': {1}",
+  "LogResetCfgCreated": "Reset cfg auto-created: {0}",
+  "LogResetCfgCreateFailed": "Failed to auto-create reset cfg from ResetCommand '{0}': {1}",
 
   "CmdDescHelp": "Show nModeManager help",
   "CmdDescModes": "List available modes",
