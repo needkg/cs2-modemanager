@@ -38,7 +38,7 @@ public sealed partial class ModeManagerPlugin
             CancelPendingSwitch("startup_reschedule");
             _pending = new PendingSwitch(mode, "startup_firstplayer");
 
-            ChatAll(Msg(MessageKey.ChatInitialModeScheduled, mode.DisplayName, safeDelay));
+            ChatTone(MessageKey.ChatInitialModeScheduled, mode.DisplayName, safeDelay);
             LogInfo(Msg(MessageKey.LogInitialModeScheduled, mode.Key, safeDelay));
 
             _pending.TimerHandle = AddTimer(safeDelay, () => ExecutePendingSwitch("startup_firstplayer_delay"));

@@ -11,7 +11,7 @@ public sealed partial class ModeManagerPlugin
     {
         if (!CanExecuteReload(player))
         {
-            cmd.ReplyToCommand(Msg(MessageKey.ReloadNoPermission));
+            ReplyTone(cmd, MessageKey.ReloadNoPermission);
             return;
         }
 
@@ -34,28 +34,28 @@ public sealed partial class ModeManagerPlugin
                 }
 
                 LogInfo(Msg(MessageKey.LogConfigReloaded, _configLoader.LastResolvedPath));
-                cmd.ReplyToCommand(Msg(MessageKey.ReloadConfigSuccess));
+                ReplyTone(cmd, MessageKey.ReloadConfigSuccess);
             }
             else
             {
-                cmd.ReplyToCommand(Msg(MessageKey.ReloadConfigNotFound, error));
+                ReplyTone(cmd, MessageKey.ReloadConfigNotFound, error);
                 LogError(Msg(MessageKey.LogReloadConfigNotFound, error));
             }
 
             EnsureResetCfgFileExists();
 
-            _vote = null;
+            ResetVotes();
             CancelPendingSwitch("reload");
             _cooldownUntilUtc = DateTime.MinValue;
 
             RebuildModeCommands();
 
-            cmd.ReplyToCommand(Msg(MessageKey.ReloadCommandsRebuilt));
-            cmd.ReplyToCommand(Msg(MessageKey.ReloadUseHelp));
+            ReplyTone(cmd, MessageKey.ReloadCommandsRebuilt);
+            ReplyTone(cmd, MessageKey.ReloadUseHelp);
         }
         catch (Exception ex)
         {
-            cmd.ReplyToCommand(Msg(MessageKey.ReloadFailed, ex.Message));
+            ReplyTone(cmd, MessageKey.ReloadFailed, ex.Message);
             LogError(Msg(MessageKey.LogReloadException, ex));
         }
     }

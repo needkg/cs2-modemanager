@@ -5,21 +5,22 @@ namespace ModeManager;
 
 public sealed partial class ModeManagerPlugin
 {
-    private void ScheduleModeSwitch(ModeDefinition mode, string reason)
+    private void ScheduleModeSwitch(ModeDefinition mode, string reason, string? targetMap = null)
     {
         CancelPendingSwitch("new_schedule");
 
         var delay = Math.Max(0, Config.SwitchDelaySeconds);
-        _pending = new PendingSwitch(mode, reason);
+        _pending = new PendingSwitch(mode, reason, targetMap);
+        var resolvedTargetMap = ModeSwitcher.ResolveTargetMap(mode, targetMap);
 
         if (delay <= 0)
         {
-            ChatAll(Msg(MessageKey.SwitchApprovedNow, mode.DisplayName));
+            ChatTone(MessageKey.SwitchApprovedNow, mode.DisplayName, resolvedTargetMap);
             ExecutePendingSwitch("immediate");
             return;
         }
 
-        ChatAll(Msg(MessageKey.SwitchApprovedIn, mode.DisplayName, delay));
+        ChatTone(MessageKey.SwitchApprovedIn, mode.DisplayName, resolvedTargetMap, delay);
         LogInfo(Msg(MessageKey.LogSwitchScheduled, mode.Key, delay, reason));
 
         _pending.TimerHandle = AddTimer(delay, () => ExecutePendingSwitch("delay"));
@@ -50,13 +51,13 @@ public sealed partial class ModeManagerPlugin
         if (_switcher == null)
         {
             LogError(Msg(MessageKey.LogSwitcherNotInitialized));
-            ChatAll(Msg(MessageKey.ChatSwitcherNotInitialized));
+            ChatTone(MessageKey.ChatSwitcherNotInitialized);
             return;
         }
 
         LogInfo(Msg(MessageKey.LogApplyingMode, pending.Mode.Key, pending.Reason, execReason));
 
-        if (_switcher.TrySwitchTo(pending.Mode, Config, out var targetMap, out var error))
+        if (_switcher.TrySwitchTo(pending.Mode, Config, pending.TargetMap, out var targetMap, out var error))
         {
             _cooldownUntilUtc = DateTime.UtcNow.AddSeconds(Config.SwitchCooldownSeconds);
             _activeModeKey = pending.Mode.Key;
@@ -68,12 +69,12 @@ public sealed partial class ModeManagerPlugin
             }
 
             LogInfo(Msg(MessageKey.LogModeApplied, pending.Mode.DisplayName, targetMap));
-            ChatAll(Msg(MessageKey.ChatModeChanged, pending.Mode.DisplayName));
+            ChatTone(MessageKey.ChatModeChanged, pending.Mode.DisplayName);
         }
         else
         {
             LogError(Msg(MessageKey.LogModeApplyFailed, pending.Mode.DisplayName, error));
-            ChatAll(Msg(MessageKey.ChatModeApplyFailed, pending.Mode.DisplayName));
+            ChatTone(MessageKey.ChatModeApplyFailed, pending.Mode.DisplayName);
 
             if (isStartupInitialSwitch && !_initialModeApplied && _initialModeQueued)
                 StartInitialModeWatcher();

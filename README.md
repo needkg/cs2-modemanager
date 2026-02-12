@@ -10,15 +10,19 @@ Mode manager for CS2 servers using CounterStrikeSharp, with vote-based mode swit
 - Predictable mode apply pipeline: `ResetCommand`, per-mode plugin unload/load, `ExecCommand`, optional `game_type`/`game_mode`, and `changelevel` using mode map, current map, or `de_dust2`.
 - Automatic reset cfg provisioning: if `ResetCommand` is `exec <relative>.cfg` (example: `exec nmodemanager/reset.cfg`), the plugin creates the missing file under `cfg/`.
 - Dynamic mode commands generated from `Modes` keys (`css_<modeKey>`, sanitized).
+- Interactive RTV flow via MenuManagerAPI capability (`menu:api`) as a required integration.
+- RTV selection flow: `mode -> map -> confirm`, with per-mode `MapPool` support.
 - Automatic initial mode scheduling on startup when the first valid human player joins.
 - Runtime config reload (`css_nmm_reload`) with validation and dynamic command rebuild.
 - Localization with `en` and `pt-BR` catalogs (safe fallback behavior).
+- Chat prefix is localized and customizable in language files via `ChatPrefix`.
 
 ## Requirements
 
 - .NET 8 SDK (for local build)
 - Compatible CounterStrikeSharp API (`CounterStrikeSharp.API` 1.0.284 in this project)
 - CS2 server with CounterStrikeSharp installed
+- MenuManagerAPI plugin installed on the server (`menu:api` capability) as a mandatory dependency (nModeManager will not load without it)
 
 ## Build
 
@@ -67,6 +71,11 @@ Example configuration:
       "DisplayName": "Retake",
       "ExecCommand": "exec nmodemanager/retake.cfg",
       "DefaultMap": "de_inferno",
+      "MapPool": [
+        "de_inferno",
+        "de_nuke",
+        "de_mirage"
+      ],
       "GameType": 0,
       "GameMode": 0,
       "PluginsToUnload": [
@@ -84,8 +93,8 @@ Example configuration:
 
 - `css_nmm` (`!nmm`): show general help.
 - `css_modes` (`!modes`): list available modes.
-- `css_nmm_setmode <key>` (`!nmm_setmode <key>`): start or join a mode vote.
-- `css_nmm_vote` (`!nmm_vote`): show current vote/pending switch status.
+- `css_rtv` (`!rtv`): open RTV flow (`mode -> map -> confirm`).
+- `css_mode <key>` (`!mode <key>`): admin-only mode apply command.
 - `css_nmm_reload` (`!nmm_reload`): reload config from disk and rebuild dynamic commands (admin with `@css/root` or server console only).
 - `css_<key>` (`!<key>`): dynamic shortcut command to vote directly for a mode.
 
@@ -95,9 +104,11 @@ Example configuration:
 - HLTV and bot players are excluded from voting.
 - Voting for the currently active mode is rejected.
 - A vote already in progress cannot be replaced by a vote for another mode.
+- If a vote is already active, mode and map selection are locked to that active vote.
 - Required votes = `ceil(eligible_players * VoteRatio)`.
+- Vote messages display current votes, votes remaining, and time remaining in real time.
 - Votes expire after `VoteDurationSeconds`.
-- After approval, switch execution waits for `SwitchDelaySeconds`.
+- After approval, the plugin announces the winning mode/map and schedules switch after `SwitchDelaySeconds`.
 - After apply, `SwitchCooldownSeconds` is enforced before another switch.
 
 ## Reload Behavior

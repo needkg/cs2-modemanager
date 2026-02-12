@@ -23,7 +23,6 @@ public sealed partial class ModeManagerPlugin : BasePlugin, IPluginConfig<ModeMa
     private bool _baseCommandsRegistered;
     private ModeSwitcher? _switcher;
 
-    private VoteSession? _vote;
     private DateTime _cooldownUntilUtc = DateTime.MinValue;
     private PendingSwitch? _pending;
     private string? _activeModeKey;
@@ -52,6 +51,7 @@ public sealed partial class ModeManagerPlugin : BasePlugin, IPluginConfig<ModeMa
         if (_switcher == null)
             return;
 
+        EnsureMenuApiCapability();
         RegisterBaseCommands();
         RebuildModeCommands();
 
@@ -72,7 +72,7 @@ public sealed partial class ModeManagerPlugin : BasePlugin, IPluginConfig<ModeMa
     {
         UnregisterModeCommands();
         CancelPendingSwitch("unload");
-        _vote = null;
+        ResetVotes();
         LogInfo(Msg(MessageKey.LogPluginUnloaded, hotReload));
     }
 

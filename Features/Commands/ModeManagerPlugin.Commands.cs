@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Commands;
@@ -15,8 +14,8 @@ public sealed partial class ModeManagerPlugin
         AddCommand("css_nmm", Msg(MessageKey.CmdDescHelp), CmdHelp);
         AddCommand("css_modes", Msg(MessageKey.CmdDescModes), CmdListModes);
 
-        AddCommand("css_nmm_setmode", Msg(MessageKey.CmdDescSetMode), CmdVoteSetMode);
-        AddCommand("css_nmm_vote", Msg(MessageKey.CmdDescVoteStatus), CmdVoteStatus);
+        AddCommand("css_rtv", Msg(MessageKey.CmdDescRtv), CmdOpenRtvMenu);
+        AddCommand("css_mode", Msg(MessageKey.CmdDescSetMode), CmdAdminSetMode);
         AddCommand("css_nmm_reload", Msg(MessageKey.CmdDescReload), CmdReloadAll);
 
         _baseCommandsRegistered = true;
@@ -24,58 +23,56 @@ public sealed partial class ModeManagerPlugin
 
     private void CmdHelp(CCSPlayerController? player, CommandInfo cmd)
     {
-        cmd.ReplyToCommand(Msg(MessageKey.HelpTitle));
-        cmd.ReplyToCommand(Msg(MessageKey.HelpCommandsLabel));
-        cmd.ReplyToCommand(Msg(MessageKey.HelpLineMm));
-        cmd.ReplyToCommand(Msg(MessageKey.HelpLineModes));
-        cmd.ReplyToCommand(Msg(MessageKey.HelpLineSetMode));
-        cmd.ReplyToCommand(Msg(MessageKey.HelpLineDynamicMode));
-        cmd.ReplyToCommand(Msg(MessageKey.HelpLineVoteStatus));
-        cmd.ReplyToCommand(Msg(MessageKey.HelpLineReload));
+        ReplyTone(cmd, MessageKey.HelpTitle);
+        ReplyTone(cmd, MessageKey.HelpCommandsLabel);
+        ReplyTone(cmd, MessageKey.HelpLineMm);
+        ReplyTone(cmd, MessageKey.HelpLineModes);
+        ReplyTone(cmd, MessageKey.HelpLineRtv);
+        ReplyTone(cmd, MessageKey.HelpLineSetMode);
+        ReplyTone(cmd, MessageKey.HelpLineDynamicMode);
+        ReplyTone(cmd, MessageKey.HelpLineReload);
 
         var keys = string.Join(", ", Config.Modes.Keys);
-        cmd.ReplyToCommand(Msg(MessageKey.HelpModesList, keys));
+        ReplyTone(cmd, MessageKey.HelpModesList, keys);
     }
 
     private void CmdListModes(CCSPlayerController? player, CommandInfo cmd)
     {
         var keys = string.Join(", ", Config.Modes.Keys);
-        cmd.ReplyToCommand(Msg(MessageKey.ModesListInfo, keys));
-        cmd.ReplyToCommand(Msg(MessageKey.ModesVoteHint));
+        ReplyTone(cmd, MessageKey.ModesListInfo, keys);
+        ReplyTone(cmd, MessageKey.ModesVoteHint);
     }
 
-    private void CmdVoteStatus(CCSPlayerController? player, CommandInfo cmd)
-    {
-        if (_pending != null)
-            cmd.ReplyToCommand(Msg(MessageKey.VoteStatusPendingSwitch, _pending.Mode.DisplayName, Config.SwitchDelaySeconds));
-
-        var vote = _vote;
-        if (vote == null)
-        {
-            cmd.ReplyToCommand(Msg(MessageKey.VoteStatusNone));
-            return;
-        }
-
-        var remaining = (int)Math.Max(0, (vote.ExpiresUtc - DateTime.UtcNow).TotalSeconds);
-        cmd.ReplyToCommand(Msg(MessageKey.VoteStatusActive, vote.ModeKey, vote.VoterIds.Count, vote.RequiredVotes, remaining));
-    }
-
-    private void CmdVoteSetMode(CCSPlayerController? player, CommandInfo cmd)
+    private void CmdAdminSetMode(CCSPlayerController? player, CommandInfo cmd)
     {
         var key = (cmd.GetArg(1) ?? string.Empty).Trim();
         if (string.IsNullOrWhiteSpace(key))
         {
-            cmd.ReplyToCommand(Msg(MessageKey.ErrorSetModeUsage));
+            ReplyTone(cmd, MessageKey.ErrorSetModeUsage);
+            return;
+        }
+
+        if (!CanExecuteReload(player))
+        {
+            ReplyTone(cmd, MessageKey.ModeNoPermission);
             return;
         }
 
         if (!Config.Modes.TryGetValue(key, out var mode))
         {
-            cmd.ReplyToCommand(Msg(MessageKey.ErrorModeNotFound, key));
+            ReplyTone(cmd, MessageKey.ErrorModeNotFound, key);
             return;
         }
 
-        HandleVote(player, cmd, mode);
+        if (IsModeAlreadyActive(mode))
+        {
+            ReplyTone(cmd, MessageKey.VoteAlreadyActiveMode, mode.DisplayName);
+            return;
+        }
+
+        var targetMap = ResolveTargetMapForMode(mode);
+        ScheduleModeSwitch(mode, "admin_mode_command", targetMap);
+        ReplyTone(cmd, MessageKey.VoteConsoleScheduled, mode.DisplayName, targetMap);
     }
 
     private void RebuildModeCommands()

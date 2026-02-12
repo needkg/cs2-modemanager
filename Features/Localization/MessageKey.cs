@@ -21,14 +21,19 @@ internal enum MessageKey
     LogModeApplyFailed,
     LogResetCfgCreated,
     LogResetCfgCreateFailed,
+    LogMenuApiAvailable,
+    LogMenuApiMissing,
 
     // Command descriptions
     CmdDescHelp,
     CmdDescModes,
     CmdDescSetMode,
-    CmdDescVoteStatus,
+    CmdDescRtv,
     CmdDescReload,
     CmdDescDynamicMode,
+
+    // Chat formatting
+    ChatPrefix,
 
     // Help / command replies
     HelpTitle,
@@ -36,17 +41,22 @@ internal enum MessageKey
     HelpLineMm,
     HelpLineModes,
     HelpLineSetMode,
+    HelpLineRtv,
     HelpLineDynamicMode,
-    HelpLineVoteStatus,
     HelpLineReload,
     HelpModesList,
     ModesListInfo,
     ModesVoteHint,
-    VoteStatusPendingSwitch,
-    VoteStatusNone,
-    VoteStatusActive,
     ErrorSetModeUsage,
     ErrorModeNotFound,
+    ModeNoPermission,
+    MenuOpenFailed,
+    MenuTitleModes,
+    MenuTitleMaps,
+    MenuTitleConfirm,
+    MenuOptionConfirmVote,
+    MenuOptionBackToMaps,
+    RtvMenuOpened,
 
     // Voting
     VoteConsoleScheduled,
@@ -58,6 +68,8 @@ internal enum MessageKey
     VoteAlreadyActiveMode,
     VoteAnotherModeInProgress,
     VoteMinPlayers,
+    VoteMapSelectionInvalid,
+    VoteMapLockedInProgress,
     VoteStartedChat,
     VoteRegisteredSelf,
     VoteAlreadyCast,
@@ -97,6 +109,7 @@ internal enum MessageKey
     ValidationDynamicCommandConflictsBase,
     ValidationDynamicCommandCollision,
     ValidationDefaultMapInvalid,
+    ValidationMapPoolMapInvalid,
     ValidationGameTypeInvalid,
     ValidationGameModeInvalid,
 
