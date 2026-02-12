@@ -93,7 +93,7 @@ internal static class ConfigValidator
                 continue;
 
             var safeKey = CommandNameSanitizer.ToSafeToken(modeKey);
-            var commandName = $"css_nmm_{safeKey}";
+            var commandName = $"css_{safeKey}";
 
             if (reserved.Contains(commandName))
             {

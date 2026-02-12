@@ -94,7 +94,7 @@ public sealed partial class ModeManagerPlugin
 
             var mode = entry.Value;
             var safeKey = CommandNameSanitizer.ToSafeToken(key);
-            var commandName = $"css_nmm_{safeKey}";
+            var commandName = $"css_{safeKey}";
 
             CommandInfo.CommandCallback handler = (player, cmd) => HandleVote(player, cmd, mode);
 

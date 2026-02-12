@@ -78,7 +78,7 @@ public sealed partial class ModeManagerPlugin
 
             _vote.VoterIds.Add(voterId);
 
-            var dynamicAlias = $"nmm_{CommandNameSanitizer.ToSafeToken(mode.Key)}";
+            var dynamicAlias = CommandNameSanitizer.ToSafeToken(mode.Key);
             ChatAll(Msg(MessageKey.VoteStartedChat, mode.DisplayName, requiredVotes, dynamicAlias));
             cmd.ReplyToCommand(Msg(MessageKey.VoteRegisteredSelf, mode.DisplayName, requiredVotes));
 

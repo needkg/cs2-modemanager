@@ -8,7 +8,7 @@ Mode manager for CS2 servers using CounterStrikeSharp, with vote-based mode swit
 - One vote per player (SteamID, with UserId fallback).
 - Cooldown between switches to prevent spam.
 - Predictable mode apply pipeline: `ResetCommand`, per-mode plugin unload/load, `ExecCommand`, optional `game_type`/`game_mode`, and `changelevel` using mode map, current map, or `de_dust2`.
-- Dynamic mode commands generated from `Modes` keys (`css_nmm_<modeKey>`, sanitized).
+- Dynamic mode commands generated from `Modes` keys (`css_<modeKey>`, sanitized).
 - Automatic initial mode scheduling on startup when the first valid human player joins.
 - Runtime config reload (`css_nmm_reload`) with validation and dynamic command rebuild.
 - Localization with `en` and `pt-BR` catalogs (safe fallback behavior).
@@ -86,7 +86,7 @@ Example configuration:
 - `css_nmm_setmode <key>` (`!nmm_setmode <key>`): start or join a mode vote.
 - `css_nmm_vote` (`!nmm_vote`): show current vote/pending switch status.
 - `css_nmm_reload` (`!nmm_reload`): reload config from disk and rebuild dynamic commands (admin with `@css/root` or server console only).
-- `css_nmm_<key>` (`!nmm_<key>`): dynamic shortcut command to vote directly for a mode.
+- `css_<key>` (`!<key>`): dynamic shortcut command to vote directly for a mode.
 
 ## Voting Flow
 
