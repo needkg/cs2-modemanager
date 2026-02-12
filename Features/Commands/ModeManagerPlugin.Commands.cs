@@ -12,12 +12,12 @@ public sealed partial class ModeManagerPlugin
         if (_baseCommandsRegistered)
             return;
 
-        AddCommand("css_mm", Msg(MessageKey.CmdDescHelp), CmdHelp);
-        AddCommand("css_modes", Msg(MessageKey.CmdDescModes), CmdListModes);
+        AddCommand("css_nmm", Msg(MessageKey.CmdDescHelp), CmdHelp);
+        AddCommand("css_nmm_modes", Msg(MessageKey.CmdDescModes), CmdListModes);
 
-        AddCommand("css_setmode", Msg(MessageKey.CmdDescSetMode), CmdVoteSetMode);
-        AddCommand("css_mm_vote", Msg(MessageKey.CmdDescVoteStatus), CmdVoteStatus);
-        AddCommand("css_mm_reload", Msg(MessageKey.CmdDescReload), CmdReloadAll);
+        AddCommand("css_nmm_setmode", Msg(MessageKey.CmdDescSetMode), CmdVoteSetMode);
+        AddCommand("css_nmm_vote", Msg(MessageKey.CmdDescVoteStatus), CmdVoteStatus);
+        AddCommand("css_nmm_reload", Msg(MessageKey.CmdDescReload), CmdReloadAll);
 
         _baseCommandsRegistered = true;
     }
@@ -94,7 +94,7 @@ public sealed partial class ModeManagerPlugin
 
             var mode = entry.Value;
             var safeKey = CommandNameSanitizer.ToSafeToken(key);
-            var commandName = $"css_{safeKey}";
+            var commandName = $"css_nmm_{safeKey}";
 
             CommandInfo.CommandCallback handler = (player, cmd) => HandleVote(player, cmd, mode);
 

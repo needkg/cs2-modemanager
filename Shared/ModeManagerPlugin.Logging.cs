@@ -5,8 +5,8 @@ namespace ModeManager;
 
 public sealed partial class ModeManagerPlugin
 {
-    private static void LogInfo(string msg) => Server.PrintToConsole($"[ModeManager] {msg}");
-    private static void LogError(string msg) => Server.PrintToConsole($"[ModeManager:ERROR] {msg}");
+    private static void LogInfo(string msg) => Server.PrintToConsole($"[nModeManager] {msg}");
+    private static void LogError(string msg) => Server.PrintToConsole($"[nModeManager:ERROR] {msg}");
 
     private static void ChatAll(string msg)
     {

@@ -1,4 +1,4 @@
-# ModeManager
+# nModeManager
 
 Mode manager for CS2 servers using CounterStrikeSharp, with vote-based mode switching, safe delayed/cooldown execution, dynamic commands, and runtime config reload.
 
@@ -8,9 +8,9 @@ Mode manager for CS2 servers using CounterStrikeSharp, with vote-based mode swit
 - One vote per player (SteamID, with UserId fallback).
 - Cooldown between switches to prevent spam.
 - Predictable mode apply pipeline: `ResetCommand`, per-mode plugin unload/load, `ExecCommand`, optional `game_type`/`game_mode`, and `changelevel` using mode map, current map, or `de_dust2`.
-- Dynamic mode commands generated from `Modes` keys (`css_<modeKey>`, sanitized).
+- Dynamic mode commands generated from `Modes` keys (`css_nmm_<modeKey>`, sanitized).
 - Automatic initial mode scheduling on startup when the first valid human player joins.
-- Runtime config reload (`css_mm_reload`) with validation and dynamic command rebuild.
+- Runtime config reload (`css_nmm_reload`) with validation and dynamic command rebuild.
 - Localization with `en` and `pt-BR` catalogs (safe fallback behavior).
 
 ## Requirements
@@ -28,8 +28,8 @@ dotnet build ModeManager.sln -c Release
 
 Main build outputs:
 
-- `bin/Release/net8.0/ModeManager.dll`
-- `bin/Release/net8.0/ModeManager.deps.json`
+- `bin/Release/net8.0/nModeManager.dll`
+- `bin/Release/net8.0/nModeManager.deps.json`
 - `bin/Release/net8.0/lang/en.json`
 - `bin/Release/net8.0/lang/pt-BR.json`
 
@@ -42,7 +42,7 @@ Main build outputs:
 
 Only supported config path:
 
-- `addons/counterstrikesharp/configs/plugins/ModeManager/ModeManager.json`
+- `addons/counterstrikesharp/configs/plugins/nModeManager/nModeManager.json`
 - Any other JSON path is ignored by config reload.
 - Mode keys must generate unique dynamic commands after sanitization and must not conflict with reserved base commands.
 
@@ -81,12 +81,12 @@ Example configuration:
 
 ## Commands
 
-- `css_mm` (`!mm`): show general help.
-- `css_modes` (`!modes`): list available modes.
-- `css_setmode <key>` (`!setmode <key>`): start or join a mode vote.
-- `css_mm_vote` (`!mm_vote`): show current vote/pending switch status.
-- `css_mm_reload` (`!mm_reload`): reload config from disk and rebuild dynamic commands (admin with `@css/root` or server console only).
-- `css_<key>` (`!<key>`): dynamic shortcut command to vote directly for a mode.
+- `css_nmm` (`!nmm`): show general help.
+- `css_nmm_modes` (`!nmm_modes`): list available modes.
+- `css_nmm_setmode <key>` (`!nmm_setmode <key>`): start or join a mode vote.
+- `css_nmm_vote` (`!nmm_vote`): show current vote/pending switch status.
+- `css_nmm_reload` (`!nmm_reload`): reload config from disk and rebuild dynamic commands (admin with `@css/root` or server console only).
+- `css_nmm_<key>` (`!nmm_<key>`): dynamic shortcut command to vote directly for a mode.
 
 ## Voting Flow
 
@@ -101,7 +101,7 @@ Example configuration:
 
 ## Reload Behavior
 
-- `css_mm_reload` attempts to reload JSON from disk.
+- `css_nmm_reload` attempts to reload JSON from disk.
 - If the file is not found, the plugin continues using in-memory config.
 - On reload, pending votes and cooldown are cleared.
 - Dynamic mode commands are always rebuilt after reload.

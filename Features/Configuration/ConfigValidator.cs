@@ -7,11 +7,11 @@ internal static class ConfigValidator
 {
     private static readonly string[] _reservedBaseCommands =
     {
-        "css_mm",
-        "css_modes",
-        "css_setmode",
-        "css_mm_vote",
-        "css_mm_reload"
+        "css_nmm",
+        "css_nmm_modes",
+        "css_nmm_setmode",
+        "css_nmm_vote",
+        "css_nmm_reload"
     };
 
     public static void ValidateOrThrow(ModeManagerConfig config)
@@ -93,7 +93,7 @@ internal static class ConfigValidator
                 continue;
 
             var safeKey = CommandNameSanitizer.ToSafeToken(modeKey);
-            var commandName = $"css_{safeKey}";
+            var commandName = $"css_nmm_{safeKey}";
 
             if (reserved.Contains(commandName))
             {

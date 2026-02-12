@@ -10,7 +10,7 @@ namespace ModeManager;
 [MinimumApiVersion(80)]
 public sealed partial class ModeManagerPlugin : BasePlugin, IPluginConfig<ModeManagerConfig>
 {
-    public override string ModuleName => "ModeManager";
+    public override string ModuleName => "nModeManager";
     public override string ModuleVersion => "0.1.0";
     public override string ModuleAuthor => "needkg";
     public override string ModuleDescription => "Production-ready CS2 mode manager with vote-based switching, delayed/cooldown execution, per-mode plugin/map/game settings, dynamic commands, localization, and safe live config reload.";
@@ -18,7 +18,7 @@ public sealed partial class ModeManagerPlugin : BasePlugin, IPluginConfig<ModeMa
     public ModeManagerConfig Config { get; set; } = new();
 
     private readonly Dictionary<string, CommandInfo.CommandCallback> _dynamicCommands = new(StringComparer.OrdinalIgnoreCase);
-    private readonly ConfigFileLoader _configLoader = new("ModeManager", nameof(ModeManagerPlugin));
+    private readonly ConfigFileLoader _configLoader = new("nModeManager", nameof(ModeManagerPlugin));
 
     private bool _baseCommandsRegistered;
     private ModeSwitcher? _switcher;
