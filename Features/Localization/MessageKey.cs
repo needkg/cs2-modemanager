@@ -90,6 +90,7 @@ internal enum MessageKey
     ValidationSwitchDelayRange,
     ValidationModeNull,
     ValidationExecCommandRequired,
+    ValidationPluginToLoadNotFound,
     ValidationSelfUnloadForbidden,
     ValidationDynamicCommandConflictsBase,
     ValidationDynamicCommandCollision,

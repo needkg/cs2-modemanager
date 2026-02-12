@@ -78,6 +78,8 @@ internal static class ConfigValidator
                     _selfPluginAliases[0]));
             }
 
+            ValidatePluginsToLoadExist(modeKey, mode.PluginsToLoad, messages);
+
             if (!string.IsNullOrWhiteSpace(mode.DefaultMap))
             {
                 var map = mode.DefaultMap.Trim();
@@ -93,6 +95,31 @@ internal static class ConfigValidator
         }
 
         ValidateDynamicCommandNames(config, messages);
+    }
+
+    private static void ValidatePluginsToLoadExist(
+        string modeKey,
+        List<string>? pluginsToLoad,
+        MessageLocalizer messages)
+    {
+        if (pluginsToLoad == null || pluginsToLoad.Count == 0)
+            return;
+
+        foreach (var pluginName in pluginsToLoad)
+        {
+            if (string.IsNullOrWhiteSpace(pluginName))
+                continue;
+
+            var trimmedName = pluginName.Trim();
+            if (ConfigPathDiscovery.TryResolvePluginDll(trimmedName, out _, out var searchedPaths))
+                continue;
+
+            throw new Exception(messages.Format(
+                MessageKey.ValidationPluginToLoadNotFound,
+                modeKey,
+                trimmedName,
+                searchedPaths));
+        }
     }
 
     private static bool ContainsSelfPluginInUnload(List<string>? pluginsToUnload)
