@@ -6,37 +6,67 @@ namespace ModeManager;
 
 public sealed class ModeManagerConfig : BasePluginConfig
 {
-    [JsonPropertyName("Language")]
+    [JsonPropertyName("language")]
     public string Language { get; set; } = "en";
 
-    [JsonPropertyName("InitialModeKey")]
+    [JsonPropertyName("Language")]
+    public string? LegacyLanguage { set => Language = value ?? Language; }
+
+    [JsonPropertyName("initial_mode_key")]
     public string? InitialModeKey { get; set; } = "retake";
 
-    [JsonPropertyName("ApplyInitialModeOnStartup")]
+    [JsonPropertyName("InitialModeKey")]
+    public string? LegacyInitialModeKey { set => InitialModeKey = value; }
+
+    [JsonPropertyName("apply_initial_mode_on_startup")]
     public bool ApplyInitialModeOnStartup { get; set; } = true;
 
-    [JsonPropertyName("ResetCommand")]
+    [JsonPropertyName("ApplyInitialModeOnStartup")]
+    public bool LegacyApplyInitialModeOnStartup { set => ApplyInitialModeOnStartup = value; }
+
+    [JsonPropertyName("reset_command")]
     public string ResetCommand { get; set; } = "exec nmodemanager/reset.cfg";
 
-    [JsonPropertyName("VoteRatio")]
+    [JsonPropertyName("ResetCommand")]
+    public string? LegacyResetCommand { set => ResetCommand = value ?? ResetCommand; }
+
+    [JsonPropertyName("vote_ratio")]
     public double VoteRatio { get; set; } = 0.6;
 
-    [JsonPropertyName("VoteMinPlayers")]
+    [JsonPropertyName("VoteRatio")]
+    public double LegacyVoteRatio { set => VoteRatio = value; }
+
+    [JsonPropertyName("vote_min_players")]
     public int VoteMinPlayers { get; set; } = 1;
 
-    [JsonPropertyName("VoteDurationSeconds")]
+    [JsonPropertyName("VoteMinPlayers")]
+    public int LegacyVoteMinPlayers { set => VoteMinPlayers = value; }
+
+    [JsonPropertyName("vote_duration_seconds")]
     public int VoteDurationSeconds { get; set; } = 120;
 
-    [JsonPropertyName("SwitchCooldownSeconds")]
+    [JsonPropertyName("VoteDurationSeconds")]
+    public int LegacyVoteDurationSeconds { set => VoteDurationSeconds = value; }
+
+    [JsonPropertyName("switch_cooldown_seconds")]
     public int SwitchCooldownSeconds { get; set; } = 20;
 
-    [JsonPropertyName("SwitchDelaySeconds")]
+    [JsonPropertyName("SwitchCooldownSeconds")]
+    public int LegacySwitchCooldownSeconds { set => SwitchCooldownSeconds = value; }
+
+    [JsonPropertyName("switch_delay_seconds")]
     public int SwitchDelaySeconds { get; set; } = 5;
 
-    [JsonPropertyName("ApplyGameTypeMode")]
+    [JsonPropertyName("SwitchDelaySeconds")]
+    public int LegacySwitchDelaySeconds { set => SwitchDelaySeconds = value; }
+
+    [JsonPropertyName("apply_game_type_mode")]
     public bool ApplyGameTypeMode { get; set; } = true;
 
-    [JsonPropertyName("Modes")]
+    [JsonPropertyName("ApplyGameTypeMode")]
+    public bool LegacyApplyGameTypeMode { set => ApplyGameTypeMode = value; }
+
+    [JsonPropertyName("modes")]
     public Dictionary<string, ModeDefinition> Modes { get; set; } =
         new(StringComparer.OrdinalIgnoreCase)
         {
@@ -47,4 +77,7 @@ public sealed class ModeManagerConfig : BasePluginConfig
                 ExecCommand = "exec nmodemanager/retake.cfg"
             }
         };
+
+    [JsonPropertyName("Modes")]
+    public Dictionary<string, ModeDefinition>? LegacyModes { set => Modes = value ?? Modes; }
 }
