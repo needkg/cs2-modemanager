@@ -157,4 +157,4 @@ Check mode key under `Modes` and run `!nmm_reload`.
 
 ## License
 
-MIT. See [`LICENSE`](https://github.com/needkg/DayNightPvP/blob/main/LICENSE).
+MIT. See [`LICENSE`](https://github.com/needkg/cs2-modemanager/blob/main/LICENSE).
