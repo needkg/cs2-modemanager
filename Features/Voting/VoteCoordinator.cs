@@ -217,14 +217,6 @@ internal sealed class VoteCoordinator
         return maps;
     }
 
-    public string ResolveTargetMapForMode(ModeDefinition mode)
-    {
-        if (TryResolveVoteTargetMap(mode, requestedMap: null, hasExplicitMapSelection: false, out var targetMap))
-            return targetMap;
-
-        return ModeSwitcher.ResolveTargetMap(mode);
-    }
-
     public bool TryResolveTargetMapForMode(
         ModeDefinition mode,
         string? requestedMap,

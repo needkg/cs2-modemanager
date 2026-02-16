@@ -48,11 +48,6 @@ public sealed partial class ModeManagerPlugin
     private IReadOnlyList<string> GetSelectableMapsForMode(ModeDefinition mode) =>
         Votes.GetSelectableMapsForMode(mode);
 
-    private string ResolveTargetMapForMode(ModeDefinition mode)
-    {
-        return Votes.ResolveTargetMapForMode(mode);
-    }
-
     private bool TryResolveTargetMapForMode(
         ModeDefinition mode,
         string? requestedMap,
