@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Commands;
 
@@ -7,118 +5,86 @@ namespace ModeManager;
 
 public sealed partial class ModeManagerPlugin
 {
-    private void RegisterBaseCommands()
-    {
-        if (_baseCommandsRegistered)
-            return;
-
-        AddCommand("css_mm", Msg(MessageKey.CmdDescHelp), CmdHelp);
-        AddCommand("css_modes", Msg(MessageKey.CmdDescModes), CmdListModes);
-
-        AddCommand("css_setmode", Msg(MessageKey.CmdDescSetMode), CmdVoteSetMode);
-        AddCommand("css_mm_vote", Msg(MessageKey.CmdDescVoteStatus), CmdVoteStatus);
-        AddCommand("css_mm_reload", Msg(MessageKey.CmdDescReload), CmdReloadAll);
-
-        _baseCommandsRegistered = true;
-    }
-
     private void CmdHelp(CCSPlayerController? player, CommandInfo cmd)
     {
-        cmd.ReplyToCommand(Msg(MessageKey.HelpTitle));
-        cmd.ReplyToCommand(Msg(MessageKey.HelpCommandsLabel));
-        cmd.ReplyToCommand(Msg(MessageKey.HelpLineMm));
-        cmd.ReplyToCommand(Msg(MessageKey.HelpLineModes));
-        cmd.ReplyToCommand(Msg(MessageKey.HelpLineSetMode));
-        cmd.ReplyToCommand(Msg(MessageKey.HelpLineDynamicMode));
-        cmd.ReplyToCommand(Msg(MessageKey.HelpLineVoteStatus));
-        cmd.ReplyToCommand(Msg(MessageKey.HelpLineReload));
+        ReplyTone(cmd, MessageKey.HelpTitle);
+        ReplyTone(cmd, MessageKey.HelpCommandsLabel);
+        ReplyTone(cmd, MessageKey.HelpLineMm);
+        ReplyTone(cmd, MessageKey.HelpLineModes);
+        ReplyTone(cmd, MessageKey.HelpLineRtv);
+        ReplyTone(cmd, MessageKey.HelpLineSetMode);
+        ReplyTone(cmd, MessageKey.HelpLineDynamicMode);
+        ReplyTone(cmd, MessageKey.HelpLineReload);
 
         var keys = string.Join(", ", Config.Modes.Keys);
-        cmd.ReplyToCommand(Msg(MessageKey.HelpModesList, keys));
+        ReplyTone(cmd, MessageKey.HelpModesList, keys);
     }
 
     private void CmdListModes(CCSPlayerController? player, CommandInfo cmd)
     {
         var keys = string.Join(", ", Config.Modes.Keys);
-        cmd.ReplyToCommand(Msg(MessageKey.ModesListInfo, keys));
-        cmd.ReplyToCommand(Msg(MessageKey.ModesVoteHint));
+        ReplyTone(cmd, MessageKey.ModesListInfo, keys);
+        ReplyTone(cmd, MessageKey.ModesVoteHint);
     }
 
-    private void CmdVoteStatus(CCSPlayerController? player, CommandInfo cmd)
-    {
-        if (_pending != null)
-            cmd.ReplyToCommand(Msg(MessageKey.VoteStatusPendingSwitch, _pending.Mode.DisplayName, Config.SwitchDelaySeconds));
-
-        var vote = _vote;
-        if (vote == null)
-        {
-            cmd.ReplyToCommand(Msg(MessageKey.VoteStatusNone));
-            return;
-        }
-
-        var remaining = (int)Math.Max(0, (vote.ExpiresUtc - DateTime.UtcNow).TotalSeconds);
-        cmd.ReplyToCommand(Msg(MessageKey.VoteStatusActive, vote.ModeKey, vote.VoterIds.Count, vote.RequiredVotes, remaining));
-    }
-
-    private void CmdVoteSetMode(CCSPlayerController? player, CommandInfo cmd)
+    private void CmdAdminSetMode(CCSPlayerController? player, CommandInfo cmd)
     {
         var key = (cmd.GetArg(1) ?? string.Empty).Trim();
         if (string.IsNullOrWhiteSpace(key))
         {
-            cmd.ReplyToCommand(Msg(MessageKey.ErrorSetModeUsage));
+            var keys = string.Join(", ", Config.Modes.Keys);
+            ReplyTone(cmd, MessageKey.ModesListInfo, keys);
+            ReplyTone(cmd, MessageKey.ErrorSetModeUsage);
+            return;
+        }
+
+        var requestedMap = (cmd.GetArg(2) ?? string.Empty).Trim();
+        var hasExplicitMapSelection = !string.IsNullOrWhiteSpace(requestedMap);
+
+        if (!AdminAccessPolicy.CanExecuteRootAction(player))
+        {
+            ReplyTone(cmd, MessageKey.ModeNoPermission);
             return;
         }
 
         if (!Config.Modes.TryGetValue(key, out var mode))
         {
-            cmd.ReplyToCommand(Msg(MessageKey.ErrorModeNotFound, key));
+            ReplyTone(cmd, MessageKey.ErrorModeNotFound, key);
             return;
         }
 
-        HandleVote(player, cmd, mode);
-    }
-
-    private void RebuildModeCommands()
-    {
-        UnregisterModeCommands();
-        RegisterModeCommandsFromConfig();
-    }
-
-    private void RegisterModeCommandsFromConfig()
-    {
-        foreach (KeyValuePair<string, ModeDefinition> entry in Config.Modes)
+        if (!TryResolveTargetMapForMode(
+                mode,
+                requestedMap: hasExplicitMapSelection ? requestedMap : null,
+                hasExplicitMapSelection: hasExplicitMapSelection,
+                out var targetMap))
         {
-            var key = (entry.Key ?? string.Empty).Trim();
-            if (string.IsNullOrWhiteSpace(key))
-                continue;
+            ReplyTone(cmd, MessageKey.VoteMapSelectionInvalid);
 
-            var mode = entry.Value;
-            var safeKey = CommandNameSanitizer.ToSafeToken(key);
-            var commandName = $"css_{safeKey}";
+            if (hasExplicitMapSelection)
+            {
+                var selectableMaps = GetSelectableMapsForMode(mode);
+                if (selectableMaps.Count > 0)
+                {
+                    ReplyTone(
+                        cmd,
+                        MessageKey.VoteMapSelectionAvailableMaps,
+                        mode.DisplayName,
+                        string.Join(", ", selectableMaps));
+                }
+            }
 
-            CommandInfo.CommandCallback handler = (player, cmd) => HandleVote(player, cmd, mode);
-
-            AddCommand(commandName, Msg(MessageKey.CmdDescDynamicMode, mode.DisplayName), handler);
-            _dynamicCommands[commandName] = handler;
+            return;
         }
 
-        LogInfo(Msg(MessageKey.LogDynamicCommandsRegistered, _dynamicCommands.Count));
-    }
-
-    private void UnregisterModeCommands()
-    {
-        foreach (KeyValuePair<string, CommandInfo.CommandCallback> command in _dynamicCommands)
+        if (IsModeAlreadyActive(mode) &&
+            (!hasExplicitMapSelection || IsTargetMapCurrent(targetMap)))
         {
-            try
-            {
-                RemoveCommand(command.Key, command.Value);
-            }
-            catch
-            {
-                // Ignore stale command references during hot reload.
-            }
+            ReplyTone(cmd, MessageKey.VoteAlreadyActiveMode, mode.DisplayName);
+            return;
         }
 
-        _dynamicCommands.Clear();
+        ScheduleModeSwitch(mode, "admin_mode_command", targetMap);
+        ReplyTone(cmd, MessageKey.VoteConsoleScheduled, mode.DisplayName, targetMap);
     }
 }

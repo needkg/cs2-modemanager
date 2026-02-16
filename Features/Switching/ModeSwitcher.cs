@@ -12,7 +12,12 @@ internal sealed class ModeSwitcher
         _runner = runner;
     }
 
-    public bool TrySwitchTo(ModeDefinition mode, ModeManagerConfig config, out string targetMap, out string error)
+    public bool TrySwitchTo(
+        ModeDefinition mode,
+        ModeManagerConfig config,
+        string? targetMapOverride,
+        out string targetMap,
+        out string error)
     {
         lock (_lock)
         {
@@ -43,7 +48,7 @@ internal sealed class ModeSwitcher
                         _runner.Run($"game_mode {mode.GameMode.Value}");
                 }
 
-                targetMap = ResolveTargetMap(mode);
+                targetMap = ResolveTargetMap(mode, targetMapOverride);
                 _runner.Run($"changelevel {targetMap}");
 
                 error = string.Empty;
@@ -58,8 +63,11 @@ internal sealed class ModeSwitcher
         }
     }
 
-    private static string ResolveTargetMap(ModeDefinition mode)
+    public static string ResolveTargetMap(ModeDefinition mode, string? targetMapOverride = null)
     {
+        if (!string.IsNullOrWhiteSpace(targetMapOverride))
+            return targetMapOverride.Trim();
+
         if (!string.IsNullOrWhiteSpace(mode.DefaultMap))
             return mode.DefaultMap.Trim();
 

@@ -10,83 +10,69 @@ namespace ModeManager;
 [MinimumApiVersion(80)]
 public sealed partial class ModeManagerPlugin : BasePlugin, IPluginConfig<ModeManagerConfig>
 {
-    public override string ModuleName => "ModeManager";
-    public override string ModuleVersion => "0.1.0";
+    public override string ModuleName => "nModeManager";
+    public override string ModuleVersion => "0.2.0";
     public override string ModuleAuthor => "needkg";
     public override string ModuleDescription => "Production-ready CS2 mode manager with vote-based switching, delayed/cooldown execution, per-mode plugin/map/game settings, dynamic commands, localization, and safe live config reload.";
 
     public ModeManagerConfig Config { get; set; } = new();
 
-    private readonly Dictionary<string, CommandInfo.CommandCallback> _dynamicCommands = new(StringComparer.OrdinalIgnoreCase);
-    private readonly ConfigFileLoader _configLoader = new("ModeManager", nameof(ModeManagerPlugin));
+    private readonly ModeManagerCompositionRoot _composition = new();
 
-    private bool _baseCommandsRegistered;
-    private ModeSwitcher? _switcher;
+    private Dictionary<string, CommandInfo.CommandCallback> _dynamicCommands => _composition.State.DynamicCommands;
+    private ConfigFileLoader _configLoader => _composition.Services.ConfigLoader;
 
-    private VoteSession? _vote;
-    private DateTime _cooldownUntilUtc = DateTime.MinValue;
-    private PendingSwitch? _pending;
-    private string? _activeModeKey;
-
-    private bool _initialModeQueued;
-    private string? _initialModeKeyQueued;
-    private bool _initialModeApplied;
-
-    public void OnConfigParsed(ModeManagerConfig config)
+    private bool _baseCommandsRegistered
     {
-        ConfigValidator.ValidateOrThrow(config);
-        Config = config;
-        SeedActiveModeFromConfigIfUnknown(config);
-        ApplyLanguage(config.Language);
+        get => _composition.State.BaseCommandsRegistered;
+        set => _composition.State.BaseCommandsRegistered = value;
     }
 
-    public override void Load(bool hotReload)
+    private ModeSwitcher? _switcher
     {
-        _switcher = new ModeSwitcher(new ServerCommandRunner());
-        LogInfo(Msg(MessageKey.LogPluginLoaded, hotReload));
+        get => _composition.Services.Switcher;
+        set => _composition.Services.Switcher = value;
     }
 
-    public override void OnAllPluginsLoaded(bool hotReload)
+    private DateTime _cooldownUntilUtc
     {
-        if (_switcher == null)
-            return;
-
-        RegisterBaseCommands();
-        RebuildModeCommands();
-
-        if (!Config.ApplyInitialModeOnStartup)
-            return;
-
-        _initialModeKeyQueued = (Config.InitialModeKey ?? string.Empty).Trim();
-        _initialModeQueued = !_initialModeApplied && !string.IsNullOrWhiteSpace(_initialModeKeyQueued);
-
-        if (!_initialModeQueued)
-            return;
-
-        LogInfo(Msg(MessageKey.LogInitialModeQueued, _initialModeKeyQueued));
-        StartInitialModeWatcher();
+        get => _composition.State.CooldownUntilUtc;
+        set => _composition.State.CooldownUntilUtc = value;
     }
 
-    public override void Unload(bool hotReload)
+    private PendingSwitch? _pending
     {
-        UnregisterModeCommands();
-        CancelPendingSwitch("unload");
-        _vote = null;
-        LogInfo(Msg(MessageKey.LogPluginUnloaded, hotReload));
+        get => _composition.State.PendingSwitch;
+        set => _composition.State.PendingSwitch = value;
     }
 
-    private void SeedActiveModeFromConfigIfUnknown(ModeManagerConfig config)
+    private string? _activeModeKey
     {
-        if (!string.IsNullOrWhiteSpace(_activeModeKey))
-            return;
+        get => _composition.State.ActiveModeKey;
+        set => _composition.State.ActiveModeKey = value;
+    }
 
-        var initialModeKey = (config.InitialModeKey ?? string.Empty).Trim();
-        if (string.IsNullOrWhiteSpace(initialModeKey))
-            return;
+    private bool _initialModeQueued
+    {
+        get => _composition.State.InitialModeQueued;
+        set => _composition.State.InitialModeQueued = value;
+    }
 
-        if (!config.Modes.ContainsKey(initialModeKey))
-            return;
+    private string? _initialModeKeyQueued
+    {
+        get => _composition.State.InitialModeKeyQueued;
+        set => _composition.State.InitialModeKeyQueued = value;
+    }
 
-        _activeModeKey = initialModeKey;
+    private bool _initialModeApplied
+    {
+        get => _composition.State.InitialModeApplied;
+        set => _composition.State.InitialModeApplied = value;
+    }
+
+    private MessageLocalizer _messages
+    {
+        get => _composition.Services.Messages;
+        set => _composition.Services.Messages = value;
     }
 }

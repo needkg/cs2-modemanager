@@ -9,6 +9,7 @@ public sealed class ModeDefinition
     public string ExecCommand { get; set; } = string.Empty;
 
     public string? DefaultMap { get; set; }
+    public List<string> MapPool { get; set; } = new();
 
     public int? GameType { get; set; }
     public int? GameMode { get; set; }

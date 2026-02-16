@@ -16,16 +16,16 @@ public sealed class ModeManagerConfig : BasePluginConfig
     public bool ApplyInitialModeOnStartup { get; set; } = true;
 
     [JsonPropertyName("ResetCommand")]
-    public string ResetCommand { get; set; } = "exec cfg/modes/reset.cfg";
+    public string ResetCommand { get; set; } = "exec nmodemanager/reset.cfg";
 
     [JsonPropertyName("VoteRatio")]
-    public double VoteRatio { get; set; } = 0.75;
+    public double VoteRatio { get; set; } = 0.6;
 
     [JsonPropertyName("VoteMinPlayers")]
     public int VoteMinPlayers { get; set; } = 1;
 
     [JsonPropertyName("VoteDurationSeconds")]
-    public int VoteDurationSeconds { get; set; } = 25;
+    public int VoteDurationSeconds { get; set; } = 120;
 
     [JsonPropertyName("SwitchCooldownSeconds")]
     public int SwitchCooldownSeconds { get; set; } = 20;
@@ -44,7 +44,7 @@ public sealed class ModeManagerConfig : BasePluginConfig
             {
                 Key = "retake",
                 DisplayName = "Retake",
-                ExecCommand = "exec cfg/modes/retake.cfg"
+                ExecCommand = "exec nmodemanager/retake.cfg"
             }
         };
 }

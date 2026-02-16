@@ -22,13 +22,13 @@ public sealed partial class ModeManagerPlugin
             var key = (_initialModeKeyQueued ?? string.Empty).Trim();
             if (string.IsNullOrWhiteSpace(key))
             {
-                _initialModeQueued = false;
+                _composition.State.ClearInitialModeQueuedFlag();
                 return;
             }
 
             if (!Config.Modes.TryGetValue(key, out var mode))
             {
-                _initialModeQueued = false;
+                _composition.State.ClearInitialModeQueuedFlag();
                 LogError(Msg(MessageKey.LogInitialModeKeyNotFound, key));
                 return;
             }
@@ -38,7 +38,7 @@ public sealed partial class ModeManagerPlugin
             CancelPendingSwitch("startup_reschedule");
             _pending = new PendingSwitch(mode, "startup_firstplayer");
 
-            ChatAll(Msg(MessageKey.ChatInitialModeScheduled, mode.DisplayName, safeDelay));
+            ChatTone(MessageKey.ChatInitialModeScheduled, mode.DisplayName, safeDelay);
             LogInfo(Msg(MessageKey.LogInitialModeScheduled, mode.Key, safeDelay));
 
             _pending.TimerHandle = AddTimer(safeDelay, () => ExecutePendingSwitch("startup_firstplayer_delay"));

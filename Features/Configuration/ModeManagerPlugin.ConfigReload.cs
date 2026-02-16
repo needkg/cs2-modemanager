@@ -1,6 +1,5 @@
 using System;
 using CounterStrikeSharp.API.Core;
-using CounterStrikeSharp.API.Modules.Admin;
 using CounterStrikeSharp.API.Modules.Commands;
 
 namespace ModeManager;
@@ -9,9 +8,9 @@ public sealed partial class ModeManagerPlugin
 {
     private void CmdReloadAll(CCSPlayerController? player, CommandInfo cmd)
     {
-        if (!CanExecuteReload(player))
+        if (!AdminAccessPolicy.CanExecuteRootAction(player))
         {
-            cmd.ReplyToCommand(Msg(MessageKey.ReloadNoPermission));
+            ReplyTone(cmd, MessageKey.ReloadNoPermission);
             return;
         }
 
@@ -25,54 +24,35 @@ public sealed partial class ModeManagerPlugin
                 Config = newConfig;
                 ApplyLanguage(newConfig.Language);
 
-                if (!_initialModeApplied && Config.ApplyInitialModeOnStartup)
-                {
-                    _initialModeKeyQueued = (Config.InitialModeKey ?? string.Empty).Trim();
-                    _initialModeQueued = !string.IsNullOrWhiteSpace(_initialModeKeyQueued);
-                    if (_initialModeQueued)
-                        StartInitialModeWatcher();
-                }
+                if (!_initialModeApplied &&
+                    Config.ApplyInitialModeOnStartup &&
+                    _composition.State.QueueInitialMode(Config.InitialModeKey, requireNotApplied: false))
+                    StartInitialModeWatcher();
 
                 LogInfo(Msg(MessageKey.LogConfigReloaded, _configLoader.LastResolvedPath));
-                cmd.ReplyToCommand(Msg(MessageKey.ReloadConfigSuccess));
+                ReplyTone(cmd, MessageKey.ReloadConfigSuccess);
             }
             else
             {
-                cmd.ReplyToCommand(Msg(MessageKey.ReloadConfigNotFound, error));
+                ReplyTone(cmd, MessageKey.ReloadConfigNotFound, error);
                 LogError(Msg(MessageKey.LogReloadConfigNotFound, error));
             }
 
-            _vote = null;
+            EnsureResetCfgFileExists();
+
+            ResetVotes();
             CancelPendingSwitch("reload");
-            _cooldownUntilUtc = DateTime.MinValue;
+            _composition.State.ResetCooldown();
 
             RebuildModeCommands();
 
-            cmd.ReplyToCommand(Msg(MessageKey.ReloadCommandsRebuilt));
-            cmd.ReplyToCommand(Msg(MessageKey.ReloadUseHelp));
+            ReplyTone(cmd, MessageKey.ReloadCommandsRebuilt);
+            ReplyTone(cmd, MessageKey.ReloadUseHelp);
         }
         catch (Exception ex)
         {
-            cmd.ReplyToCommand(Msg(MessageKey.ReloadFailed, ex.Message));
+            ReplyTone(cmd, MessageKey.ReloadFailed, ex.Message);
             LogError(Msg(MessageKey.LogReloadException, ex));
-        }
-    }
-
-    private static bool CanExecuteReload(CCSPlayerController? player)
-    {
-        if (player == null)
-            return true;
-
-        if (!player.IsValid)
-            return false;
-
-        try
-        {
-            return AdminManager.PlayerHasPermissions(player, new[] { "@css/root" });
-        }
-        catch
-        {
-            return false;
         }
     }
 }

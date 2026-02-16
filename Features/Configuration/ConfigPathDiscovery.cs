@@ -28,6 +28,35 @@ internal static class ConfigPathDiscovery
             yield return GetCanonicalPathForRoot(root, moduleName);
     }
 
+    public static bool TryResolvePluginDll(string pluginName, out string resolvedPath, out string searchedPaths)
+    {
+        resolvedPath = string.Empty;
+
+        var candidates = new List<string>(GetCommonPluginDllPaths(pluginName));
+        foreach (var candidate in candidates)
+        {
+            if (!File.Exists(candidate))
+                continue;
+
+            resolvedPath = candidate;
+            searchedPaths = string.Join(" | ", candidates);
+            return true;
+        }
+
+        searchedPaths = candidates.Count == 0 ? "(none)" : string.Join(" | ", candidates);
+        return false;
+    }
+
+    public static IEnumerable<string> GetCommonPluginDllPaths(string pluginName)
+    {
+        var normalizedName = NormalizePluginName(pluginName);
+        if (string.IsNullOrWhiteSpace(normalizedName))
+            yield break;
+
+        foreach (var root in EnumerateCandidateRootsDistinct())
+            yield return GetCanonicalPluginDllPathForRoot(root, normalizedName);
+    }
+
     private static string GetCanonicalPathForRoot(string root, string moduleName)
     {
         return Path.Combine(
@@ -38,6 +67,22 @@ internal static class ConfigPathDiscovery
             "plugins",
             moduleName,
             $"{moduleName}.json");
+    }
+
+    private static string GetCanonicalPluginDllPathForRoot(string root, string pluginName)
+    {
+        return Path.Combine(
+            root,
+            "addons",
+            "counterstrikesharp",
+            "plugins",
+            pluginName,
+            $"{pluginName}.dll");
+    }
+
+    private static string NormalizePluginName(string pluginName)
+    {
+        return (pluginName ?? string.Empty).Trim().Trim('"');
     }
 
     private static IEnumerable<string> EnumerateCandidateRootsDistinct()
