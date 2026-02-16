@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -21,11 +22,16 @@ internal sealed class MenuApiBridge
     private static readonly string[] _menuTypeButtonCandidates =
     {
         "Button",
-        "Buttons"
+        "Buttons",
+        "ButtonMenu"
     };
+    private const int MaxRetainedCallbacks = 2048;
+    private const int MaxRetainedMenus = 512;
 
     private readonly Action<string> _logInfo;
     private readonly Func<MessageKey, string> _msg;
+    private readonly Queue<Delegate> _retainedCallbacks = new();
+    private readonly Queue<object> _retainedMenus = new();
 
     private object? _menuApiCapability;
     private Type? _menuApiInterfaceType;
@@ -160,6 +166,7 @@ internal sealed class MenuApiBridge
         try
         {
             addOption.Invoke(menu, args);
+            RetainCallback(callback);
             return true;
         }
         catch
@@ -178,40 +185,59 @@ internal sealed class MenuApiBridge
             var openMenuMethod = _menuApi
                 .GetType()
                 .GetMethods(BindingFlags.Public | BindingFlags.Instance)
-                .FirstOrDefault(method =>
+                .Where(method =>
                 {
                     if (!method.Name.Equals("OpenMenu", StringComparison.Ordinal))
                         return false;
 
                     var parameters = method.GetParameters();
-                    return parameters.Length == 2 &&
+                    return parameters.Length >= 2 &&
                            parameters[0].ParameterType.IsInstanceOfType(menu) &&
                            parameters[1].ParameterType.IsAssignableFrom(typeof(CCSPlayerController));
-                });
+                })
+                .OrderBy(method => method.GetParameters().Length)
+                .FirstOrDefault();
 
             if (openMenuMethod != null)
             {
-                openMenuMethod.Invoke(_menuApi, new object?[] { menu, player });
+                var parameters = openMenuMethod.GetParameters();
+                var args = new object?[parameters.Length];
+                args[0] = menu;
+                args[1] = player;
+                for (var i = 2; i < parameters.Length; i++)
+                    args[i] = GetDefaultArgumentValue(parameters[i]);
+
+                openMenuMethod.Invoke(_menuApi, args);
+                RetainMenu(menu);
                 return true;
             }
 
             var openMethod = menu
                 .GetType()
                 .GetMethods(BindingFlags.Public | BindingFlags.Instance)
-                .FirstOrDefault(method =>
+                .Where(method =>
                 {
                     if (!method.Name.Equals("Open", StringComparison.Ordinal))
                         return false;
 
                     var parameters = method.GetParameters();
-                    return parameters.Length == 1 &&
+                    return parameters.Length >= 1 &&
                            parameters[0].ParameterType.IsAssignableFrom(typeof(CCSPlayerController));
-                });
+                })
+                .OrderBy(method => method.GetParameters().Length)
+                .FirstOrDefault();
 
             if (openMethod == null)
                 return false;
 
-            openMethod.Invoke(menu, new object?[] { player });
+            var openParameters = openMethod.GetParameters();
+            var openArgs = new object?[openParameters.Length];
+            openArgs[0] = player;
+            for (var i = 1; i < openParameters.Length; i++)
+                openArgs[i] = GetDefaultArgumentValue(openParameters[i]);
+
+            openMethod.Invoke(menu, openArgs);
+            RetainMenu(menu);
             return true;
         }
         catch
@@ -231,17 +257,25 @@ internal sealed class MenuApiBridge
                 .GetType()
                 .GetMethods(BindingFlags.Public | BindingFlags.Instance)
                 .Where(method => _menuApiCloseMethodCandidates.Contains(method.Name, StringComparer.Ordinal))
-                .FirstOrDefault(method =>
+                .Where(method =>
                 {
                     var parameters = method.GetParameters();
-                    return parameters.Length == 1 &&
+                    return parameters.Length >= 1 &&
                            parameters[0].ParameterType.IsAssignableFrom(typeof(CCSPlayerController));
-                });
+                })
+                .OrderBy(method => method.GetParameters().Length)
+                .FirstOrDefault();
 
             if (closeMethod == null)
                 return false;
 
-            closeMethod.Invoke(_menuApi, new object?[] { player });
+            var closeParameters = closeMethod.GetParameters();
+            var closeArgs = new object?[closeParameters.Length];
+            closeArgs[0] = player;
+            for (var i = 1; i < closeParameters.Length; i++)
+                closeArgs[i] = GetDefaultArgumentValue(closeParameters[i]);
+
+            closeMethod.Invoke(_menuApi, closeArgs);
             return true;
         }
         catch
@@ -324,6 +358,9 @@ internal sealed class MenuApiBridge
                 parameter =>
                 {
                     var parameterType = Nullable.GetUnderlyingType(parameter.ParameterType) ?? parameter.ParameterType;
+                    if (parameterType == typeof(object))
+                        return false;
+
                     return parameterType.IsAssignableFrom(typeof(CCSPlayerController));
                 });
 
@@ -390,5 +427,19 @@ internal sealed class MenuApiBridge
             return null;
 
         return parameterType.IsValueType ? Activator.CreateInstance(parameterType) : null;
+    }
+
+    private void RetainCallback(Delegate callback)
+    {
+        _retainedCallbacks.Enqueue(callback);
+        while (_retainedCallbacks.Count > MaxRetainedCallbacks)
+            _retainedCallbacks.Dequeue();
+    }
+
+    private void RetainMenu(object menu)
+    {
+        _retainedMenus.Enqueue(menu);
+        while (_retainedMenus.Count > MaxRetainedMenus)
+            _retainedMenus.Dequeue();
     }
 }

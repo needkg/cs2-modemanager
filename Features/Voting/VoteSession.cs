@@ -16,7 +16,7 @@ internal sealed class VoteSession
 
     public string ModeKey { get; }
     public string ModeDisplayName { get; }
-    public string TargetMap { get; }
+    public string TargetMap { get; set; }
     public int RequiredVotes { get; }
     public DateTime ExpiresUtc { get; }
     public HashSet<string> VoterIds { get; } = new(StringComparer.Ordinal);

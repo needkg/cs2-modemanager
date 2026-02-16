@@ -34,25 +34,17 @@ internal static class LocalizationCatalogLoader
             if (string.IsNullOrWhiteSpace(json))
                 return new Dictionary<MessageKey, string>();
 
-            var rawCatalog = JsonSerializer.Deserialize<Dictionary<string, string>>(json, new JsonSerializerOptions
+            using var document = JsonDocument.Parse(json, new JsonDocumentOptions
             {
-                ReadCommentHandling = JsonCommentHandling.Skip,
+                CommentHandling = JsonCommentHandling.Skip,
                 AllowTrailingCommas = true
             });
 
-            if (rawCatalog == null || rawCatalog.Count == 0)
+            if (document.RootElement.ValueKind != JsonValueKind.Object)
                 return new Dictionary<MessageKey, string>();
 
             var parsedCatalog = new Dictionary<MessageKey, string>();
-            foreach (KeyValuePair<string, string> entry in rawCatalog)
-            {
-                if (!Enum.TryParse<MessageKey>(entry.Key, false, out var key))
-                    continue;
-                if (string.IsNullOrWhiteSpace(entry.Value))
-                    continue;
-
-                parsedCatalog[key] = entry.Value;
-            }
+            FlattenCatalog(document.RootElement, pathPrefix: null, parsedCatalog);
 
             return parsedCatalog;
         }
@@ -60,6 +52,56 @@ internal static class LocalizationCatalogLoader
         {
             return new Dictionary<MessageKey, string>();
         }
+    }
+
+    private static void FlattenCatalog(
+        JsonElement element,
+        string? pathPrefix,
+        IDictionary<MessageKey, string> catalog)
+    {
+        if (element.ValueKind != JsonValueKind.Object)
+            return;
+
+        foreach (var property in element.EnumerateObject())
+        {
+            var path = string.IsNullOrWhiteSpace(pathPrefix)
+                ? property.Name
+                : $"{pathPrefix}_{property.Name}";
+
+            switch (property.Value.ValueKind)
+            {
+                case JsonValueKind.Object:
+                    FlattenCatalog(property.Value, path, catalog);
+                    break;
+                case JsonValueKind.String:
+                    var value = property.Value.GetString();
+                    if (string.IsNullOrWhiteSpace(value))
+                        break;
+
+                    if (!TryParseMessageKey(path, out var key))
+                        break;
+
+                    catalog[key] = value;
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
+    private static bool TryParseMessageKey(string rawKey, out MessageKey key)
+    {
+        if (Enum.TryParse<MessageKey>(rawKey, ignoreCase: true, out key))
+            return true;
+
+        var normalized = (rawKey ?? string.Empty)
+            .Trim()
+            .Replace(".", string.Empty, StringComparison.Ordinal)
+            .Replace("-", string.Empty, StringComparison.Ordinal)
+            .Replace("_", string.Empty, StringComparison.Ordinal)
+            .Replace(" ", string.Empty, StringComparison.Ordinal);
+
+        return Enum.TryParse<MessageKey>(normalized, ignoreCase: true, out key);
     }
 
     private static string? TryReadCatalogText(string languageCode)

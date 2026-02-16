@@ -7,6 +7,7 @@ namespace ModeManager;
 public sealed partial class ModeManagerPlugin
 {
     private MenuApiBridge? _menuApiBridge;
+    private const float MenuTransitionDelaySeconds = 0.05f;
 
     private MenuApiBridge MenuBridge => _menuApiBridge ??= new MenuApiBridge(LogInfo, Msg);
 
@@ -28,13 +29,25 @@ public sealed partial class ModeManagerPlugin
             return;
         }
 
-        MenuBridge.TryCloseMenuForPlayer(player);
-        if (!TryOpenModeVoteMenu(player))
-        {
-            ReplyTone(cmd, MessageKey.MenuOpenFailed);
+        if (Votes.TryReplyActiveVoteStatusForVoter(player, msg => ReplyTone(cmd, msg)))
             return;
-        }
 
+        QueueMenuTransition(player, () =>
+        {
+            Votes.CleanupExpiredVote();
+            MenuBridge.TryCloseMenuForPlayer(player);
+
+            if (Votes.TryGetActiveVoteMode(Config, out var activeVoteMode))
+            {
+                if (!TryOpenMapVoteMenu(player, activeVoteMode))
+                    TellTone(player, MessageKey.MenuOpenFailed);
+
+                return;
+            }
+
+            if (!TryOpenModeVoteMenu(player))
+                TellTone(player, MessageKey.MenuOpenFailed);
+        });
         ReplyTone(cmd, MessageKey.RtvMenuOpened);
     }
 
@@ -54,7 +67,7 @@ public sealed partial class ModeManagerPlugin
                 continue;
 
             var capturedModeKey = modeKey;
-            var optionText = $"{mode.DisplayName} ({modeKey})";
+            var optionText = $"{mode.DisplayName})";
             if (!MenuBridge.TryAddMenuOption(menu, optionText, p => OpenMapVoteMenuFromMode(p, capturedModeKey)))
                 return false;
         }
@@ -79,9 +92,12 @@ public sealed partial class ModeManagerPlugin
             return;
         }
 
-        MenuBridge.TryCloseMenuForPlayer(player);
-        if (!TryOpenMapVoteMenu(player, mode))
-            TellTone(player, MessageKey.MenuOpenFailed);
+        QueueMenuTransition(player, () =>
+        {
+            MenuBridge.TryCloseMenuForPlayer(player);
+            if (!TryOpenMapVoteMenu(player, mode))
+                TellTone(player, MessageKey.MenuOpenFailed);
+        });
     }
 
     private bool TryOpenMapVoteMenu(CCSPlayerController player, ModeDefinition mode)
@@ -111,9 +127,12 @@ public sealed partial class ModeManagerPlugin
         if (!player.IsValid)
             return;
 
-        MenuBridge.TryCloseMenuForPlayer(player);
-        if (!TryOpenVoteConfirmMenu(player, mode, selectedMap))
-            TellTone(player, MessageKey.MenuOpenFailed);
+        QueueMenuTransition(player, () =>
+        {
+            MenuBridge.TryCloseMenuForPlayer(player);
+            if (!TryOpenVoteConfirmMenu(player, mode, selectedMap))
+                TellTone(player, MessageKey.MenuOpenFailed);
+        });
     }
 
     private bool TryOpenVoteConfirmMenu(CCSPlayerController player, ModeDefinition mode, string selectedMap)
@@ -135,8 +154,11 @@ public sealed partial class ModeManagerPlugin
         if (!player.IsValid)
             return;
 
-        MenuBridge.TryCloseMenuForPlayer(player);
-        HandleVoteFromMenu(player, mode, selectedMap);
+        QueueMenuTransition(player, () =>
+        {
+            MenuBridge.TryCloseMenuForPlayer(player);
+            HandleVoteFromMenu(player, mode, selectedMap);
+        });
     }
 
     private void GoBackToMapSelection(CCSPlayerController player, ModeDefinition mode)
@@ -144,8 +166,22 @@ public sealed partial class ModeManagerPlugin
         if (!player.IsValid)
             return;
 
-        MenuBridge.TryCloseMenuForPlayer(player);
-        if (!TryOpenMapVoteMenu(player, mode))
-            TellTone(player, MessageKey.MenuOpenFailed);
+        QueueMenuTransition(player, () =>
+        {
+            MenuBridge.TryCloseMenuForPlayer(player);
+            if (!TryOpenMapVoteMenu(player, mode))
+                TellTone(player, MessageKey.MenuOpenFailed);
+        });
+    }
+
+    private void QueueMenuTransition(CCSPlayerController player, Action action)
+    {
+        AddTimer(MenuTransitionDelaySeconds, () =>
+        {
+            if (player == null || !player.IsValid)
+                return;
+
+            action();
+        });
     }
 }

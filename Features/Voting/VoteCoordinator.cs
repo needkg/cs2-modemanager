@@ -123,11 +123,8 @@ internal sealed class VoteCoordinator
 
         if (vote != null)
         {
-            if (hasExplicitMapSelection && !vote.TargetMap.Equals(resolvedMap, StringComparison.OrdinalIgnoreCase))
-            {
-                reply(Msg(MessageKey.VoteMapLockedInProgress, vote.ModeDisplayName, vote.TargetMap));
-                return;
-            }
+            if (hasExplicitMapSelection)
+                vote.TargetMap = resolvedMap;
 
             resolvedMap = vote.TargetMap;
         }
@@ -230,6 +227,70 @@ internal sealed class VoteCoordinator
 
     public void Reset() => _vote = null;
 
+    public void CleanupExpiredVote() => CleanupExpiredVoteIfNeeded();
+
+    public bool TryReplyActiveVoteStatusForVoter(CCSPlayerController player, Action<string> reply)
+    {
+        if (player == null || !player.IsValid)
+            return false;
+
+        CleanupExpiredVoteIfNeeded();
+
+        var vote = _vote;
+        if (vote == null)
+            return false;
+
+        var voterId = PlayerIdResolver.GetStableId(player);
+        if (voterId == null || !vote.VoterIds.Contains(voterId))
+            return false;
+
+        var remaining = RemainingSeconds(vote);
+        var missingVotes = MissingVotes(vote);
+
+        reply(
+            Msg(
+                MessageKey.VoteStatusAlreadyVoted,
+                vote.ModeDisplayName,
+                vote.TargetMap,
+                vote.VoterIds.Count,
+                vote.RequiredVotes,
+                missingVotes,
+                remaining));
+
+        return true;
+    }
+
+    public bool TryGetActiveVoteMode(ModeManagerConfig config, out ModeDefinition mode)
+    {
+        mode = null!;
+
+        CleanupExpiredVoteIfNeeded();
+
+        var vote = _vote;
+        if (vote == null)
+            return false;
+
+        if (config.Modes.TryGetValue(vote.ModeKey, out var directMode) && directMode != null)
+        {
+            mode = directMode;
+            return true;
+        }
+
+        var fallbackMode = config.Modes
+            .FirstOrDefault(entry => entry.Value != null &&
+                                     entry.Key.Equals(vote.ModeKey, StringComparison.OrdinalIgnoreCase))
+            .Value;
+
+        if (fallbackMode == null)
+        {
+            _vote = null;
+            return false;
+        }
+
+        mode = fallbackMode;
+        return true;
+    }
+
     private static bool IsModeAlreadyActive(string? activeModeKey, ModeDefinition mode) =>
         !string.IsNullOrWhiteSpace(activeModeKey) &&
         activeModeKey.Equals(mode.Key, StringComparison.OrdinalIgnoreCase);
@@ -261,7 +322,14 @@ internal sealed class VoteCoordinator
 
         if (DateTime.UtcNow >= vote.ExpiresUtc)
         {
-            Chat(MessageKey.VoteExpiredChat, vote.ModeDisplayName, vote.TargetMap);
+            var missingVotes = MissingVotes(vote);
+            Chat(
+                MessageKey.VoteExpiredChat,
+                vote.ModeDisplayName,
+                vote.TargetMap,
+                vote.VoterIds.Count,
+                vote.RequiredVotes,
+                missingVotes);
             _vote = null;
         }
     }

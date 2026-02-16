@@ -73,6 +73,7 @@ internal enum MessageKey
     VoteStartedChat,
     VoteRegisteredSelf,
     VoteAlreadyCast,
+    VoteStatusAlreadyVoted,
     VoteRegisteredChat,
     VoteExpiredChat,
 
