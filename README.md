@@ -9,7 +9,7 @@
 - Dynamic commands like `!retake`, `!dm`, based on your config keys.
 - Cooldown and vote expiration to prevent spam.
 - Startup mode auto-apply when first real player joins.
-- English and Brazilian Portuguese messages.
+- English, Brazilian Portuguese, Spanish, and Russian messages.
 
 ## Server Requirements
 
@@ -79,7 +79,7 @@
 
 - `!nmm` (`css_nmm`): show help.
 - `!modes` (`css_modes`): list available modes.
-- `!rtv` (`css_rtv`): open vote menu (`mode -> map -> confirm`).
+- `!rtv` (`css_rtv`): open RTV vote menu (or active-vote map selection).
 - `!<modeKey>` (`css_<modeKey>`): vote directly for a mode from chat.
 
 </details>
@@ -99,30 +99,25 @@
 - One vote per player identity.
 - Required votes use: `ceil(eligible_players * VoteRatio)`.
 - Votes expire after `VoteDurationSeconds`.
+- While a vote is active, the mode is locked to that active vote.
+- During an active vote, players using `!rtv` only vote for that mode (they can still pick other maps).
+- If a player already voted and runs `!rtv` again during the active vote, they receive current vote status in chat.
 - Once approved, switch is scheduled with `SwitchDelaySeconds`.
 - After apply, switch cooldown uses `SwitchCooldownSeconds`.
 
 ## Menu Flow
 
 1. Player runs `!rtv`.
-2. Player selects a mode.
+2. If no vote is active, player selects a mode.
 3. Player selects a map from that mode's `MapPool`.
 4. Player confirms vote.
-5. Plugin announces progress and switches when quorum is reached.
+5. If a vote is already active, `!rtv` opens map selection for that active mode.
+6. Plugin announces progress and switches when quorum is reached.
 
 ## Localization
 
-- Supported languages: `en`, `pt-BR`.
+- Supported languages: `en`, `pt-BR`, `es`, `ru`.
 - Change language with `Language` in config.
-
-## Troubleshooting
-
-- Plugin not loading:
-  Check if `MenuManagerAPI` is installed and exposing `menu:api`.
-- Commands not updating after config change:
-  Run `css_nmm_reload` from console or `!nmm_reload` as root admin.
-- Wrong config file being ignored:
-  Ensure path is exactly `addons/counterstrikesharp/configs/plugins/nModeManager/nModeManager.json`.
 
 ## License
 
