@@ -67,7 +67,7 @@ public sealed partial class ModeManagerPlugin
                 continue;
 
             var capturedModeKey = modeKey;
-            var optionText = $"{mode.DisplayName})";
+            var optionText = $"{mode.DisplayName}";
             if (!MenuBridge.TryAddMenuOption(menu, optionText, p => OpenMapVoteMenuFromMode(p, capturedModeKey)))
                 return false;
         }
