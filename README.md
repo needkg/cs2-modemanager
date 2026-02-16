@@ -1,33 +1,47 @@
 # nModeManager
 
-`nModeManager` is a CS2 server plugin for CounterStrikeSharp that lets players vote game modes, choose maps from a menu, and switch modes safely with cooldown/delay controls.
+`nModeManager` is a CS2 plugin for CounterStrikeSharp focused on practical mode rotation:
+- player voting with `!rtv`
+- map selection per mode
+- safe mode switching with delay and cooldown
+- admin mode/map override command
 
-## What You Get
+## Player Experience
 
-- Player voting for mode changes (`!rtv` menu flow).
-- Map selection per mode (`mode -> map -> confirm`).
-- Dynamic commands like `!retake`, `!dm`, based on your config keys.
-- Cooldown and vote expiration to prevent spam.
-- Startup mode auto-apply when first real player joins.
-- English, Brazilian Portuguese, Spanish, and Russian messages.
+- `!rtv` opens a guided flow: mode -> map -> confirm vote.
+- If a vote is already active, players can only vote for that same mode.
+- During an active vote, players can still choose a different map inside that mode.
+- If a player already voted and runs `!rtv` again, they receive live vote status in chat.
+- If a vote expires without enough votes, the plugin announces final vote progress and closes the vote.
 
-## Server Requirements
+## Admin Experience
 
-- CS2 dedicated server with CounterStrikeSharp installed.
-- [`MenuManagerAPI`](https://github.com/nickj609/MenuManagerAPI) installed and working (`menu:api` capability).
+- Force mode switch quickly with:
+`!mode <mode_key> [map]`
+- Reload plugin config and dynamic commands without restarting server:
+`!nmm_reload`
+- Dynamic vote commands are auto-created from configured mode keys:
+if mode key is `retake`, command `!retake` is available.
 
-## Installation
+## Requirements
 
-1. Download the plugin release files.
+- CS2 Dedicated Server
+- [Metamod 2.0 Dev](https://www.sourcemm.net/downloads.php?branch=dev)
+- [CounterStrikeSharp](https://github.com/roflmuffin/CounterStrikeSharp/releases)
+- [MenuManagerAPI](https://github.com/nickj609/MenuManagerAPI)
+
+## Quick Installation
+
+1. Install [MenuManagerAPI](https://github.com/nickj609/MenuManagerAPI) and confirm the `menu:api` capability is available.
 2. Copy `nModeManager.dll` and `nModeManager.deps.json` to:
 `addons/counterstrikesharp/plugins/nModeManager/`
-3. Copy the `lang` folder next to the plugin DLL:
+3. Copy the `lang` folder to:
 `addons/counterstrikesharp/plugins/nModeManager/lang/`
-4. Create or edit config at:
+4. Create or edit:
 `addons/counterstrikesharp/configs/plugins/nModeManager/nModeManager.json`
-5. Restart the server or load plugins again.
+5. Restart the server (or reload plugins).
 
-## Quick Config Example
+## Minimal Config (Copy/Paste)
 
 ```json
 {
@@ -35,9 +49,9 @@
   "InitialModeKey": "retake",
   "ApplyInitialModeOnStartup": true,
   "ResetCommand": "exec nmodemanager/reset.cfg",
-  "VoteRatio": 0.75,
+  "VoteRatio": 0.6,
   "VoteMinPlayers": 1,
-  "VoteDurationSeconds": 25,
+  "VoteDurationSeconds": 120,
   "SwitchCooldownSeconds": 20,
   "SwitchDelaySeconds": 5,
   "ApplyGameTypeMode": true,
@@ -54,82 +68,93 @@
       ],
       "GameType": 0,
       "GameMode": 0,
-      "PluginsToUnload": [
-        "SomePlugin"
-      ],
-      "PluginsToLoad": [
-        "AnotherPlugin"
-      ]
+      "PluginsToUnload": [],
+      "PluginsToLoad": []
     }
   }
 }
 ```
 
-## Important Config Notes
-
-- `MapPool` controls maps shown in the RTV menu for that mode.
-- If `MapPool` is empty, plugin falls back to `DefaultMap`, current map, then `de_dust2`.
-- Mode keys generate dynamic commands (`css_<key>` / `!<key>`). Keys must be unique after sanitization.
-- `css_mode` accepts optional map (`css_mode <key> [map]`); explicit maps must be valid for the selected mode.
-- If a mode is already active, `css_mode` only proceeds when a different valid map is explicitly provided.
-- `ResetCommand` can auto-create a missing cfg file when using `exec <relative>.cfg`.
-- When a vote expires without quorum, the plugin announces final vote status and clears the active vote.
-
 ## Commands
 
-<details>
-<summary>Player Commands</summary>
+### Player Commands
 
-- `!nmm` (`css_nmm`): show help.
-- `!modes` (`css_modes`): list available modes.
-- `!rtv` (`css_rtv`): open RTV vote menu (or active-vote map selection).
-- `!<modeKey>` (`css_<modeKey>`): vote directly for a mode from chat.
+| Command | Description |
+|---|---|
+| `!nmm` | Show help |
+| `!modes` | List available modes |
+| `!rtv` | Open RTV vote menu |
+| `!<mode_key>` | Vote directly for a mode (example: `!retake`) |
 
-</details>
+### Admin (`@css/root`) and Console Commands
 
-<details>
-<summary>Admin/Console Commands</summary>
+| Command | Description |
+|---|---|
+| `!mode <mode_key> [map]` | Force a mode switch with optional map |
+| `!nmm_reload` | Reload config and rebuild dynamic mode commands |
 
-- `!mode <key> [map]` (`css_mode <key> [map]`): force a mode switch (admin), optionally targeting a specific map.
-- `!nmm_reload` (`css_nmm_reload`): reload config and rebuild dynamic commands (`@css/root` or server console).
+## Voting Rules
 
-</details>
-
-## Command Examples
-
-- `!mode retake`: apply `retake` with the mode's preferred map.
-- `!mode retake de_nuke`: apply `retake` and force `de_nuke` (must be valid for that mode).
-- `!rtv`: open mode/map vote menu, or map-only menu for the active vote mode.
-
-## How Voting Works
-
-- Console can schedule a mode switch directly (no vote).
-- HLTV and bots are ignored for vote counting.
-- One vote per player identity.
-- Required votes use: `ceil(eligible_players * VoteRatio)`.
-- Votes expire after `VoteDurationSeconds`.
-- While a vote is active, the mode is locked to that active vote.
-- During an active vote, players using `!rtv` only vote for that mode (they can still pick other maps).
-- If a player already voted and runs `!rtv` again during the active vote, they receive current vote status in chat.
-- Once approved, switch is scheduled with `SwitchDelaySeconds`.
-- After apply, switch cooldown uses `SwitchCooldownSeconds`.
-- If the timer ends before quorum, chat shows final progress and the active vote is closed.
-
-## Menu Flow
-
-1. Player runs `!rtv`.
-2. If no vote is active, player selects a mode.
-3. Player selects a map from that mode's `MapPool`.
+1. Player opens vote with `!rtv`.
+2. Player selects mode.
+3. Player selects map.
 4. Player confirms vote.
-5. If a vote is already active, `!rtv` opens map selection for that active mode.
-6. Plugin announces progress and either switches on quorum or expires with a final status message.
+5. Plugin broadcasts vote progress.
+6. If quorum is reached, mode switch is scheduled.
+7. If timer expires before quorum, vote closes and final status is announced.
+
+Important:
+- one vote per player identity
+- bots and HLTV are excluded from eligible player count
+- required votes are calculated as:
+`ceil(eligible_players * VoteRatio)`
+- while a vote is active, mode choice is locked to the active vote mode
+- map target can still be adjusted within that active vote mode
+
+## Admin `!mode` Behavior
+
+Examples:
+- `!mode retake`
+- `!mode retake de_nuke`
+
+Rules:
+1. If map is invalid for the selected mode, plugin returns available maps for that mode.
+2. If selected mode is already active and no map is provided, command is blocked.
+3. If selected mode is already active and map equals current map, command is blocked.
+4. If selected mode is already active and map is valid and different, command is allowed.
 
 ## Localization
 
-- Supported languages: `en`, `pt-BR`, `es`, `ru`.
-- Change language with `Language` in config.
-- Language files under `lang/*.json` are grouped by feature (for example `menu`, `vote`, `error`) and use `snake_case` keys.
+Supported languages:
+- `en`
+- `pt-BR`
+- `es`
+- `ru`
+
+Set language in config:
+`"Language": "en"`
+
+## Practical Tips
+
+- Keep `MapPool` populated for each mode to improve vote UX.
+- Use `SwitchDelaySeconds` to give players warning before switch.
+- Use `SwitchCooldownSeconds` to prevent switch spam.
+- Run `!nmm_reload` after each config change.
+
+## Troubleshooting
+
+### `!rtv` does not open menu
+
+Check if MenuManagerAPI is installed, loaded, and exposing `menu:api`.
+
+### `!mode` or `!nmm_reload` denied
+
+Player must have `@css/root` permission.
+
+### Dynamic mode command is missing
+
+Check mode key under `Modes` and run `!nmm_reload`.
 
 ## License
 
-MIT. See `LICENSE`.
+MIT. See [`LICENSE`](https://github.com/needkg/DayNightPvP/blob/main/LICENSE).
