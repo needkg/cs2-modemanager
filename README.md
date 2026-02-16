@@ -91,6 +91,7 @@ if mode key is `retake`, command `!retake` is available.
 | Command | Description |
 |---|---|
 | `!mode <mode_key> [map]` | Force a mode switch with optional map |
+| `!rtv <enable\|disable>` | Enable or disable RTV voting globally |
 | `!nmm_reload` | Reload config and rebuild dynamic mode commands |
 
 ## Voting Rules
