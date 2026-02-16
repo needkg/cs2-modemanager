@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using CounterStrikeSharp.API.Core;
 
 namespace ModeManager;
@@ -10,8 +9,12 @@ internal sealed class VoteCoordinator
     private readonly Func<MessageKey, object?[], string> _msg;
     private readonly Action<MessageKey, object?[]> _chat;
     private readonly Action<ModeDefinition, string, string?> _scheduleModeSwitch;
-
-    private VoteSession? _vote;
+    private readonly VoteTargetMapResolver _targetMapResolver = new();
+    private readonly VoteEligibilityPolicy _eligibilityPolicy = new();
+    private readonly VoteActiveModePolicy _activeModePolicy = new();
+    private readonly VoteQuorumPolicy _quorumPolicy = new();
+    private readonly VoteSessionRegistrar _sessionRegistrar = new();
+    private readonly VoteSessionStore _sessionStore;
 
     public VoteCoordinator(
         Func<MessageKey, object?[], string> msg,
@@ -21,6 +24,7 @@ internal sealed class VoteCoordinator
         _msg = msg;
         _chat = chat;
         _scheduleModeSwitch = scheduleModeSwitch;
+        _sessionStore = new VoteSessionStore(msg, chat);
     }
 
     public void HandleVoteRequest(
@@ -37,8 +41,12 @@ internal sealed class VoteCoordinator
         if (IsModeAlreadyActive(activeModeKey, mode))
         {
             if (hasExplicitMapSelection &&
-                TryResolveVoteTargetMap(mode, requestedMap, hasExplicitMapSelection: true, out var selectedMap) &&
-                !IsCurrentMap(selectedMap))
+                _targetMapResolver.TryResolveTargetMap(
+                    mode,
+                    requestedMap,
+                    hasExplicitMapSelection: true,
+                    out var selectedMap) &&
+                !_targetMapResolver.IsCurrentMapForTarget(selectedMap))
             {
                 // Same mode is already active, but player picked a different map.
                 // Allow vote flow to continue as a map change request.
@@ -52,258 +60,123 @@ internal sealed class VoteCoordinator
 
         if (player == null)
         {
-            if (!TryResolveVoteTargetMap(mode, requestedMap, hasExplicitMapSelection, out var mapForSwitch))
-            {
-                reply(Msg(MessageKey.VoteMapSelectionInvalid));
-                return;
-            }
-
-            _scheduleModeSwitch(mode, "console", mapForSwitch);
-            reply(Msg(MessageKey.VoteConsoleScheduled, mode.DisplayName, mapForSwitch));
+            HandleConsoleVoteRequest(mode, requestedMap, hasExplicitMapSelection, reply);
             return;
         }
 
-        if (!player.IsValid)
-        {
-            reply(Msg(MessageKey.ErrorInvalidPlayer));
+        if (!_eligibilityPolicy.TryResolveVoterIdentity(player, pendingSwitch, cooldownUntilUtc, Msg, reply, out var voterId))
             return;
-        }
 
-        if (pendingSwitch != null)
-        {
-            reply(Msg(MessageKey.VotePendingAlready, pendingSwitch.Mode.DisplayName));
+        _sessionStore.CleanupExpiredVoteIfNeeded();
+
+        var vote = _sessionStore.Current;
+
+        if (!_activeModePolicy.TryAllowVoteForMode(vote, mode, Msg, reply))
             return;
-        }
 
-        if (DateTime.UtcNow < cooldownUntilUtc)
-        {
-            var seconds = (int)Math.Ceiling((cooldownUntilUtc - DateTime.UtcNow).TotalSeconds);
-            reply(Msg(MessageKey.VoteCooldown, seconds));
-            return;
-        }
-
-        if (PlayerEligibility.IsIneligible(player))
-        {
-            reply(Msg(MessageKey.VoteIneligible));
-            return;
-        }
-
-        var voterId = PlayerIdResolver.GetStableId(player);
-        if (voterId == null)
-        {
-            reply(Msg(MessageKey.VoteIdentityMissing));
-            return;
-        }
-
-        CleanupExpiredVoteIfNeeded();
-
-        var vote = _vote;
-
-        if (vote != null && !vote.ModeKey.Equals(mode.Key, StringComparison.OrdinalIgnoreCase))
-        {
-            var remaining = RemainingSeconds(vote);
-            var missingVotes = MissingVotes(vote);
-            reply(
-                Msg(
-                    MessageKey.VoteAnotherModeInProgress,
-                    vote.ModeDisplayName,
-                    vote.TargetMap,
-                    vote.VoterIds.Count,
-                    vote.RequiredVotes,
-                    missingVotes,
-                    remaining));
-            return;
-        }
-
-        if (!TryResolveVoteTargetMap(mode, requestedMap, hasExplicitMapSelection, out var resolvedMap))
+        if (!_targetMapResolver.TryResolveTargetMap(mode, requestedMap, hasExplicitMapSelection, out var resolvedMap))
         {
             reply(Msg(MessageKey.VoteMapSelectionInvalid));
             return;
         }
 
-        if (vote != null)
-        {
-            if (hasExplicitMapSelection)
-                vote.TargetMap = resolvedMap;
-
-            resolvedMap = vote.TargetMap;
-        }
-
-        var eligiblePlayers = PlayerEligibility.CountEligiblePlayers();
-        if (eligiblePlayers < config.VoteMinPlayers)
-        {
-            reply(Msg(MessageKey.VoteMinPlayers, config.VoteMinPlayers, eligiblePlayers));
+        if (!_quorumPolicy.TryResolveRequiredVotes(config, Msg, reply, out var requiredVotes))
             return;
-        }
 
-        var requiredVotes = VoteMath.RequiredVotes(eligiblePlayers, config.VoteRatio);
+        var registration = _sessionRegistrar.RegisterVote(
+            currentVote: vote,
+            mode: mode,
+            voterId: voterId,
+            targetMap: resolvedMap,
+            hasExplicitMapSelection: hasExplicitMapSelection,
+            requiredVotes: requiredVotes,
+            voteDurationSeconds: config.VoteDurationSeconds);
 
-        if (vote == null)
+        if (registration.Status == VoteRegistrationStatus.Started)
         {
-            vote = new VoteSession(
-                modeKey: mode.Key,
-                modeDisplayName: mode.DisplayName,
-                targetMap: resolvedMap,
-                requiredVotes: requiredVotes,
-                expiresUtc: DateTime.UtcNow.AddSeconds(config.VoteDurationSeconds));
-
-            vote.VoterIds.Add(voterId);
-            _vote = vote;
+            _sessionStore.Set(registration.Vote);
 
             var dynamicAlias = CommandNameSanitizer.ToSafeToken(mode.Key);
-            var remaining = RemainingSeconds(vote);
-            var missingVotes = MissingVotes(vote);
-
             Chat(
                 MessageKey.VoteStartedChat,
                 mode.DisplayName,
-                vote.TargetMap,
-                vote.VoterIds.Count,
-                vote.RequiredVotes,
-                missingVotes,
-                remaining,
+                registration.Vote.TargetMap,
+                registration.Vote.VoterIds.Count,
+                registration.Vote.RequiredVotes,
+                registration.MissingVotes,
+                registration.RemainingSeconds,
                 dynamicAlias);
 
-            reply(Msg(MessageKey.VoteRegisteredSelf, mode.DisplayName, vote.TargetMap, missingVotes, remaining));
-            TryFinalizeVoteIfReached(mode, vote);
+            reply(
+                Msg(
+                    MessageKey.VoteRegisteredSelf,
+                    mode.DisplayName,
+                    registration.Vote.TargetMap,
+                    registration.MissingVotes,
+                    registration.RemainingSeconds));
+
+            TryFinalizeVoteIfReached(mode, registration.Vote);
             return;
         }
 
-        if (vote.VoterIds.Contains(voterId))
+        if (registration.Status == VoteRegistrationStatus.AlreadyVoted)
         {
             reply(Msg(MessageKey.VoteAlreadyCast));
             return;
         }
 
-        vote.VoterIds.Add(voterId);
-
-        var remainingForChat = RemainingSeconds(vote);
-        var missingVotesForChat = MissingVotes(vote);
-
         Chat(
             MessageKey.VoteRegisteredChat,
-            vote.ModeDisplayName,
-            vote.TargetMap,
-            vote.VoterIds.Count,
-            vote.RequiredVotes,
-            missingVotesForChat,
-            remainingForChat);
+            registration.Vote.ModeDisplayName,
+            registration.Vote.TargetMap,
+            registration.Vote.VoterIds.Count,
+            registration.Vote.RequiredVotes,
+            registration.MissingVotes,
+            registration.RemainingSeconds);
 
-        TryFinalizeVoteIfReached(mode, vote);
+        TryFinalizeVoteIfReached(mode, registration.Vote);
     }
 
     public IReadOnlyList<string> GetSelectableMapsForMode(ModeDefinition mode)
-    {
-        var maps = new List<string>();
-        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-
-        foreach (var rawMap in mode.MapPool)
-        {
-            var map = NormalizeMapName(rawMap);
-            if (map == null)
-                continue;
-
-            if (seen.Add(map))
-                maps.Add(map);
-        }
-
-        if (maps.Count > 0)
-            return maps;
-
-        var fallback = NormalizeMapName(ModeSwitcher.ResolveTargetMap(mode));
-        if (fallback != null)
-            maps.Add(fallback);
-
-        return maps;
-    }
+        => _targetMapResolver.GetSelectableMapsForMode(mode);
 
     public bool TryResolveTargetMapForMode(
         ModeDefinition mode,
         string? requestedMap,
         bool hasExplicitMapSelection,
         out string targetMap) =>
-        TryResolveVoteTargetMap(mode, requestedMap, hasExplicitMapSelection, out targetMap);
+        _targetMapResolver.TryResolveTargetMap(mode, requestedMap, hasExplicitMapSelection, out targetMap);
 
-    public void Reset() => _vote = null;
+    public void Reset() => _sessionStore.Reset();
 
-    public void CleanupExpiredVote() => CleanupExpiredVoteIfNeeded();
+    public void CleanupExpiredVote() => _sessionStore.CleanupExpiredVoteIfNeeded();
 
     public bool TryReplyActiveVoteStatusForVoter(CCSPlayerController player, Action<string> reply)
-    {
-        if (player == null || !player.IsValid)
-            return false;
-
-        CleanupExpiredVoteIfNeeded();
-
-        var vote = _vote;
-        if (vote == null)
-            return false;
-
-        var voterId = PlayerIdResolver.GetStableId(player);
-        if (voterId == null || !vote.VoterIds.Contains(voterId))
-            return false;
-
-        var remaining = RemainingSeconds(vote);
-        var missingVotes = MissingVotes(vote);
-
-        reply(
-            Msg(
-                MessageKey.VoteStatusAlreadyVoted,
-                vote.ModeDisplayName,
-                vote.TargetMap,
-                vote.VoterIds.Count,
-                vote.RequiredVotes,
-                missingVotes,
-                remaining));
-
-        return true;
-    }
+        => _sessionStore.TryReplyActiveVoteStatusForVoter(player, reply);
 
     public bool TryGetActiveVoteMode(ModeManagerConfig config, out ModeDefinition mode)
-    {
-        mode = null!;
+        => _sessionStore.TryGetActiveVoteMode(config, out mode);
 
-        CleanupExpiredVoteIfNeeded();
-
-        var vote = _vote;
-        if (vote == null)
-            return false;
-
-        if (config.Modes.TryGetValue(vote.ModeKey, out var directMode) && directMode != null)
-        {
-            mode = directMode;
-            return true;
-        }
-
-        var fallbackMode = config.Modes
-            .FirstOrDefault(entry => entry.Value != null &&
-                                     entry.Key.Equals(vote.ModeKey, StringComparison.OrdinalIgnoreCase))
-            .Value;
-
-        if (fallbackMode == null)
-        {
-            _vote = null;
-            return false;
-        }
-
-        mode = fallbackMode;
-        return true;
-    }
-
-    public bool IsCurrentMapForTarget(string map) => IsCurrentMap(map);
+    public bool IsCurrentMapForTarget(string map) => _targetMapResolver.IsCurrentMapForTarget(map);
 
     private static bool IsModeAlreadyActive(string? activeModeKey, ModeDefinition mode) =>
         !string.IsNullOrWhiteSpace(activeModeKey) &&
         activeModeKey.Equals(mode.Key, StringComparison.OrdinalIgnoreCase);
 
-    private static bool IsCurrentMap(string map)
+    private void HandleConsoleVoteRequest(
+        ModeDefinition mode,
+        string? requestedMap,
+        bool hasExplicitMapSelection,
+        Action<string> reply)
     {
-        var currentMap = NormalizeMapName(MapResolver.TryGetCurrentMapName());
-        var normalizedTargetMap = NormalizeMapName(map);
+        if (!_targetMapResolver.TryResolveTargetMap(mode, requestedMap, hasExplicitMapSelection, out var mapForSwitch))
+        {
+            reply(Msg(MessageKey.VoteMapSelectionInvalid));
+            return;
+        }
 
-        return currentMap != null &&
-               normalizedTargetMap != null &&
-               currentMap.Equals(normalizedTargetMap, StringComparison.OrdinalIgnoreCase);
+        _scheduleModeSwitch(mode, "console", mapForSwitch);
+        reply(Msg(MessageKey.VoteConsoleScheduled, mode.DisplayName, mapForSwitch));
     }
 
     private void TryFinalizeVoteIfReached(ModeDefinition mode, VoteSession vote)
@@ -311,111 +184,9 @@ internal sealed class VoteCoordinator
         if (vote.VoterIds.Count < vote.RequiredVotes)
             return;
 
-        _vote = null;
+        _sessionStore.Clear();
         _scheduleModeSwitch(mode, "vote", vote.TargetMap);
     }
-
-    private void CleanupExpiredVoteIfNeeded()
-    {
-        var vote = _vote;
-        if (vote == null)
-            return;
-
-        if (DateTime.UtcNow >= vote.ExpiresUtc)
-        {
-            var missingVotes = MissingVotes(vote);
-            Chat(
-                MessageKey.VoteExpiredChat,
-                vote.ModeDisplayName,
-                vote.TargetMap,
-                vote.VoterIds.Count,
-                vote.RequiredVotes,
-                missingVotes);
-            _vote = null;
-        }
-    }
-
-    private bool TryResolveVoteTargetMap(
-        ModeDefinition mode,
-        string? requestedMap,
-        bool hasExplicitMapSelection,
-        out string targetMap)
-    {
-        var selectableMaps = GetSelectableMapsForMode(mode);
-        if (selectableMaps.Count == 0)
-        {
-            targetMap = string.Empty;
-            return false;
-        }
-
-        var normalizedRequestedMap = NormalizeMapName(requestedMap);
-        if (hasExplicitMapSelection)
-        {
-            if (normalizedRequestedMap == null)
-            {
-                targetMap = string.Empty;
-                return false;
-            }
-
-            var selected = selectableMaps.FirstOrDefault(
-                map => map.Equals(normalizedRequestedMap, StringComparison.OrdinalIgnoreCase));
-
-            if (selected == null)
-            {
-                targetMap = string.Empty;
-                return false;
-            }
-
-            targetMap = selected;
-            return true;
-        }
-
-        if (normalizedRequestedMap != null)
-        {
-            var requestedInPool = selectableMaps.FirstOrDefault(
-                map => map.Equals(normalizedRequestedMap, StringComparison.OrdinalIgnoreCase));
-            if (requestedInPool != null)
-            {
-                targetMap = requestedInPool;
-                return true;
-            }
-        }
-
-        targetMap = GetPreferredMapForMode(mode, selectableMaps);
-        return true;
-    }
-
-    private static string GetPreferredMapForMode(ModeDefinition mode, IReadOnlyList<string> selectableMaps)
-    {
-        var normalizedDefaultMap = NormalizeMapName(mode.DefaultMap);
-        if (normalizedDefaultMap != null)
-        {
-            var defaultMapInPool = selectableMaps.FirstOrDefault(
-                map => map.Equals(normalizedDefaultMap, StringComparison.OrdinalIgnoreCase));
-            if (defaultMapInPool != null)
-                return defaultMapInPool;
-        }
-
-        return selectableMaps[0];
-    }
-
-    private static string? NormalizeMapName(string? map)
-    {
-        var trimmed = (map ?? string.Empty).Trim();
-        if (string.IsNullOrWhiteSpace(trimmed))
-            return null;
-
-        if (trimmed.Contains(' ') || trimmed.Contains('"'))
-            return null;
-
-        return trimmed;
-    }
-
-    private static int RemainingSeconds(VoteSession vote) =>
-        (int)Math.Max(0, (vote.ExpiresUtc - DateTime.UtcNow).TotalSeconds);
-
-    private static int MissingVotes(VoteSession vote) =>
-        Math.Max(0, vote.RequiredVotes - vote.VoterIds.Count);
 
     private string Msg(MessageKey key, params object?[] args) => _msg(key, args);
 

@@ -22,13 +22,13 @@ public sealed partial class ModeManagerPlugin
             var key = (_initialModeKeyQueued ?? string.Empty).Trim();
             if (string.IsNullOrWhiteSpace(key))
             {
-                _initialModeQueued = false;
+                _composition.State.ClearInitialModeQueuedFlag();
                 return;
             }
 
             if (!Config.Modes.TryGetValue(key, out var mode))
             {
-                _initialModeQueued = false;
+                _composition.State.ClearInitialModeQueuedFlag();
                 LogError(Msg(MessageKey.LogInitialModeKeyNotFound, key));
                 return;
             }

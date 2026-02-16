@@ -59,14 +59,11 @@ public sealed partial class ModeManagerPlugin
 
         if (_switcher.TrySwitchTo(pending.Mode, Config, pending.TargetMap, out var targetMap, out var error))
         {
-            _cooldownUntilUtc = DateTime.UtcNow.AddSeconds(Config.SwitchCooldownSeconds);
+            _composition.State.StartCooldown(Config.SwitchCooldownSeconds);
             _activeModeKey = pending.Mode.Key;
 
             if (isStartupInitialSwitch)
-            {
-                _initialModeApplied = true;
-                _initialModeQueued = false;
-            }
+                _composition.State.MarkInitialModeApplied();
 
             LogInfo(Msg(MessageKey.LogModeApplied, pending.Mode.DisplayName, targetMap));
             ChatTone(MessageKey.ChatModeChanged, pending.Mode.DisplayName);

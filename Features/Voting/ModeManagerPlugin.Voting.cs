@@ -7,9 +7,7 @@ namespace ModeManager;
 
 public sealed partial class ModeManagerPlugin
 {
-    private VoteCoordinator? _voteCoordinator;
-
-    private VoteCoordinator Votes => _voteCoordinator ??= new VoteCoordinator(
+    private VoteCoordinator Votes => _composition.Services.GetOrCreateVoteCoordinator(
         (key, args) => Msg(key, args),
         (key, args) => ChatTone(key, args),
         ScheduleModeSwitch);
