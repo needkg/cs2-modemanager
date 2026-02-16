@@ -48,9 +48,14 @@ public sealed partial class ModeManagerPlugin
         var key = (cmd.GetArg(1) ?? string.Empty).Trim();
         if (string.IsNullOrWhiteSpace(key))
         {
+            var keys = string.Join(", ", Config.Modes.Keys);
+            ReplyTone(cmd, MessageKey.ModesListInfo, keys);
             ReplyTone(cmd, MessageKey.ErrorSetModeUsage);
             return;
         }
+
+        var requestedMap = (cmd.GetArg(2) ?? string.Empty).Trim();
+        var hasExplicitMapSelection = !string.IsNullOrWhiteSpace(requestedMap);
 
         if (!CanExecuteReload(player))
         {
@@ -64,13 +69,37 @@ public sealed partial class ModeManagerPlugin
             return;
         }
 
-        if (IsModeAlreadyActive(mode))
+        if (!TryResolveTargetMapForMode(
+                mode,
+                requestedMap: hasExplicitMapSelection ? requestedMap : null,
+                hasExplicitMapSelection: hasExplicitMapSelection,
+                out var targetMap))
+        {
+            ReplyTone(cmd, MessageKey.VoteMapSelectionInvalid);
+
+            if (hasExplicitMapSelection)
+            {
+                var selectableMaps = GetSelectableMapsForMode(mode);
+                if (selectableMaps.Count > 0)
+                {
+                    ReplyTone(
+                        cmd,
+                        MessageKey.VoteMapSelectionAvailableMaps,
+                        mode.DisplayName,
+                        string.Join(", ", selectableMaps));
+                }
+            }
+
+            return;
+        }
+
+        if (IsModeAlreadyActive(mode) &&
+            (!hasExplicitMapSelection || IsTargetMapCurrent(targetMap)))
         {
             ReplyTone(cmd, MessageKey.VoteAlreadyActiveMode, mode.DisplayName);
             return;
         }
 
-        var targetMap = ResolveTargetMapForMode(mode);
         ScheduleModeSwitch(mode, "admin_mode_command", targetMap);
         ReplyTone(cmd, MessageKey.VoteConsoleScheduled, mode.DisplayName, targetMap);
     }

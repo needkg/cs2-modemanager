@@ -53,6 +53,15 @@ public sealed partial class ModeManagerPlugin
         return Votes.ResolveTargetMapForMode(mode);
     }
 
+    private bool TryResolveTargetMapForMode(
+        ModeDefinition mode,
+        string? requestedMap,
+        bool hasExplicitMapSelection,
+        out string targetMap) =>
+        Votes.TryResolveTargetMapForMode(mode, requestedMap, hasExplicitMapSelection, out targetMap);
+
+    private bool IsTargetMapCurrent(string map) => Votes.IsCurrentMapForTarget(map);
+
     private bool IsModeAlreadyActive(ModeDefinition mode) =>
         !string.IsNullOrWhiteSpace(_activeModeKey) &&
         _activeModeKey.Equals(mode.Key, StringComparison.OrdinalIgnoreCase);

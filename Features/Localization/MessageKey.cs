@@ -69,7 +69,7 @@ internal enum MessageKey
     VoteAnotherModeInProgress,
     VoteMinPlayers,
     VoteMapSelectionInvalid,
-    VoteMapLockedInProgress,
+    VoteMapSelectionAvailableMaps,
     VoteStartedChat,
     VoteRegisteredSelf,
     VoteAlreadyCast,

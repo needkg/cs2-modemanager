@@ -24,7 +24,7 @@
   "cmd": {
     "desc_help": "Show help",
     "desc_modes": "List available modes",
-    "desc_set_mode": "Admin command: css_mode <modeKey>",
+    "desc_set_mode": "Admin command: css_mode <modeKey> [map]",
     "desc_rtv": "Open RTV menu (mode/map)",
     "desc_reload": "Reload configuration from disk and rebuild commands",
     "desc_dynamic_mode": "Vote to switch to '{0}'"
@@ -41,7 +41,7 @@
     "commands_label": "Available commands:",
     "line_mm": "  {yellow}!nmm{default}               -> show this help",
     "line_modes": "  {yellow}!modes{default}             -> list available modes",
-    "line_set_mode": "  {yellow}!mode <key>{default}        -> admin: apply a mode immediately",
+    "line_set_mode": "  {yellow}!mode <key> [map]{default}  -> admin: apply a mode immediately",
     "line_rtv": "  {yellow}!rtv{default}               -> open RTV menu (mode/map)",
     "line_dynamic_mode": "  {yellow}!<key>{default}             -> vote for a mode (dynamic command)",
     "line_reload": "  {yellow}!nmm_reload{default}        -> reload config + rebuild commands",
@@ -52,7 +52,7 @@
     "vote_hint": "Vote with {yellow}!rtv{default} or {yellow}!<key>{default}."
   },
   "error": {
-    "set_mode_usage": "Usage: {yellow}!mode <modeKey>{default}.",
+    "set_mode_usage": "Usage: {yellow}!mode <modeKey> [map]{default}.",
     "mode_not_found": "Mode '{dark_cyan}{0}{default}' was not found.",
     "invalid_player": "Invalid player."
   },
@@ -80,7 +80,7 @@
     "another_mode_in_progress": "Active vote: mode '{dark_cyan}{0}{default}', map '{dark_cyan}{1}{default}', votes {yellow}{2}/{3}{default} ({yellow}{4}{default} left), {yellow}{5}s{default} remaining.",
     "min_players": "Minimum players required to vote: {yellow}{0}{default}. Current eligible players: {yellow}{1}{default}.",
     "map_selection_invalid": "Invalid map selection for this mode.",
-    "map_locked_in_progress": "Current vote for '{dark_cyan}{0}{default}' is locked to map '{dark_cyan}{1}{default}'.",
+    "map_selection_available_maps": "Available maps for mode '{dark_cyan}{0}{default}': {yellow}{1}{default}.",
     "started_chat": "Vote started: mode '{dark_cyan}{0}{default}', map '{dark_cyan}{1}{default}'. Votes {yellow}{2}/{3}{default} ({yellow}{4}{default} left), {yellow}{5}s{default} remaining. Type {yellow}!{6}{default} to vote.",
     "registered_self": "Vote registered: mode '{dark_cyan}{0}{default}', map '{dark_cyan}{1}{default}'. {yellow}{2}{default} votes left, {yellow}{3}s{default} remaining.",
     "already_cast": "You have already voted in this mode switch.",

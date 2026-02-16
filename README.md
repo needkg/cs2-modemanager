@@ -70,7 +70,10 @@
 - `MapPool` controls maps shown in the RTV menu for that mode.
 - If `MapPool` is empty, plugin falls back to `DefaultMap`, current map, then `de_dust2`.
 - Mode keys generate dynamic commands (`css_<key>` / `!<key>`). Keys must be unique after sanitization.
+- `css_mode` accepts optional map (`css_mode <key> [map]`); explicit maps must be valid for the selected mode.
+- If a mode is already active, `css_mode` only proceeds when a different valid map is explicitly provided.
 - `ResetCommand` can auto-create a missing cfg file when using `exec <relative>.cfg`.
+- When a vote expires without quorum, the plugin announces final vote status and clears the active vote.
 
 ## Commands
 
@@ -87,10 +90,16 @@
 <details>
 <summary>Admin/Console Commands</summary>
 
-- `!mode <key>` (`css_mode <key>`): force a mode switch (admin).
+- `!mode <key> [map]` (`css_mode <key> [map]`): force a mode switch (admin), optionally targeting a specific map.
 - `!nmm_reload` (`css_nmm_reload`): reload config and rebuild dynamic commands (`@css/root` or server console).
 
 </details>
+
+## Command Examples
+
+- `!mode retake`: apply `retake` with the mode's preferred map.
+- `!mode retake de_nuke`: apply `retake` and force `de_nuke` (must be valid for that mode).
+- `!rtv`: open mode/map vote menu, or map-only menu for the active vote mode.
 
 ## How Voting Works
 
@@ -104,6 +113,7 @@
 - If a player already voted and runs `!rtv` again during the active vote, they receive current vote status in chat.
 - Once approved, switch is scheduled with `SwitchDelaySeconds`.
 - After apply, switch cooldown uses `SwitchCooldownSeconds`.
+- If the timer ends before quorum, chat shows final progress and the active vote is closed.
 
 ## Menu Flow
 
@@ -112,12 +122,13 @@
 3. Player selects a map from that mode's `MapPool`.
 4. Player confirms vote.
 5. If a vote is already active, `!rtv` opens map selection for that active mode.
-6. Plugin announces progress and switches when quorum is reached.
+6. Plugin announces progress and either switches on quorum or expires with a final status message.
 
 ## Localization
 
 - Supported languages: `en`, `pt-BR`, `es`, `ru`.
 - Change language with `Language` in config.
+- Language files under `lang/*.json` are grouped by feature (for example `menu`, `vote`, `error`) and use `snake_case` keys.
 
 ## License
 

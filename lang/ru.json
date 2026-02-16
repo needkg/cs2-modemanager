@@ -24,7 +24,7 @@
   "cmd": {
     "desc_help": "Показать помощь",
     "desc_modes": "Показать доступные режимы",
-    "desc_set_mode": "Админ-команда: css_mode <modeKey>",
+    "desc_set_mode": "Админ-команда: css_mode <modeKey> [карта]",
     "desc_rtv": "Открыть меню RTV (режим/карта)",
     "desc_reload": "Перезагрузить конфигурацию с диска и пересобрать команды",
     "desc_dynamic_mode": "Голосовать за переключение на '{0}'"
@@ -41,7 +41,7 @@
     "commands_label": "Доступные команды:",
     "line_mm": "  {yellow}!nmm{default}               -> показать эту справку",
     "line_modes": "  {yellow}!modes{default}             -> показать доступные режимы",
-    "line_set_mode": "  {yellow}!mode <key>{default}        -> админ: применить режим сразу",
+    "line_set_mode": "  {yellow}!mode <key> [карта]{default} -> админ: применить режим сразу",
     "line_rtv": "  {yellow}!rtv{default}               -> открыть меню RTV (режим/карта)",
     "line_dynamic_mode": "  {yellow}!<key>{default}             -> голосовать за режим (динамическая команда)",
     "line_reload": "  {yellow}!nmm_reload{default}        -> перезагрузить config + пересобрать команды",
@@ -52,7 +52,7 @@
     "vote_hint": "Голосуйте через {yellow}!rtv{default} или {yellow}!<key>{default}."
   },
   "error": {
-    "set_mode_usage": "Использование: {yellow}!mode <modeKey>{default}.",
+    "set_mode_usage": "Использование: {yellow}!mode <modeKey> [карта]{default}.",
     "mode_not_found": "Режим '{dark_cyan}{0}{default}' не найден.",
     "invalid_player": "Некорректный игрок."
   },
@@ -80,7 +80,7 @@
     "another_mode_in_progress": "Активное голосование: режим '{dark_cyan}{0}{default}', карта '{dark_cyan}{1}{default}', голоса {yellow}{2}/{3}{default} (осталось {yellow}{4}{default}), времени {yellow}{5}s{default}.",
     "min_players": "Минимум игроков для голосования: {yellow}{0}{default}. Текущих подходящих игроков: {yellow}{1}{default}.",
     "map_selection_invalid": "Некорректный выбор карты для этого режима.",
-    "map_locked_in_progress": "Текущее голосование за '{dark_cyan}{0}{default}' зафиксировано на карте '{dark_cyan}{1}{default}'.",
+    "map_selection_available_maps": "Доступные карты для режима '{dark_cyan}{0}{default}': {yellow}{1}{default}.",
     "started_chat": "Голосование начато: режим '{dark_cyan}{0}{default}', карта '{dark_cyan}{1}{default}'. Голоса {yellow}{2}/{3}{default} (осталось {yellow}{4}{default}), времени {yellow}{5}s{default}. Введите {yellow}!{6}{default}, чтобы голосовать.",
     "registered_self": "Голос учтен: режим '{dark_cyan}{0}{default}', карта '{dark_cyan}{1}{default}'. Нужно еще {yellow}{2}{default} голосов, осталось {yellow}{3}s{default}.",
     "already_cast": "Вы уже голосовали за это переключение режима.",

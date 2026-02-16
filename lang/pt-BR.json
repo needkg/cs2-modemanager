@@ -24,7 +24,7 @@
   "cmd": {
     "desc_help": "Mostrar ajuda",
     "desc_modes": "Listar modos disponiveis",
-    "desc_set_mode": "Comando admin: css_mode <modeKey>",
+    "desc_set_mode": "Comando admin: css_mode <modeKey> [mapa]",
     "desc_rtv": "Abrir menu RTV (modo/mapa)",
     "desc_reload": "Recarregar configuracao do disco e reconstruir comandos",
     "desc_dynamic_mode": "Votar para trocar para '{0}'"
@@ -41,7 +41,7 @@
     "commands_label": "Comandos disponiveis:",
     "line_mm": "  {yellow}!nmm{default}               -> mostrar esta ajuda",
     "line_modes": "  {yellow}!modes{default}             -> listar modos disponiveis",
-    "line_set_mode": "  {yellow}!mode <key>{default}        -> admin: aplicar um modo imediatamente",
+    "line_set_mode": "  {yellow}!mode <key> [mapa]{default} -> admin: aplicar um modo imediatamente",
     "line_rtv": "  {yellow}!rtv{default}               -> abrir menu RTV (modo/mapa)",
     "line_dynamic_mode": "  {yellow}!<key>{default}             -> votar em um modo (comando dinamico)",
     "line_reload": "  {yellow}!nmm_reload{default}        -> recarregar config + reconstruir comandos",
@@ -52,7 +52,7 @@
     "vote_hint": "Vote com {yellow}!rtv{default} ou {yellow}!<key>{default}."
   },
   "error": {
-    "set_mode_usage": "Uso: {yellow}!mode <modeKey>{default}.",
+    "set_mode_usage": "Uso: {yellow}!mode <modeKey> [mapa]{default}.",
     "mode_not_found": "Modo '{dark_cyan}{0}{default}' nao foi encontrado.",
     "invalid_player": "Jogador invalido."
   },
@@ -80,7 +80,7 @@
     "another_mode_in_progress": "Votacao ativa: modo '{dark_cyan}{0}{default}', mapa '{dark_cyan}{1}{default}', votos {yellow}{2}/{3}{default} ({yellow}{4}{default} faltando), {yellow}{5}s{default} restantes.",
     "min_players": "Minimo de jogadores para votar: {yellow}{0}{default}. Jogadores elegiveis atuais: {yellow}{1}{default}.",
     "map_selection_invalid": "Selecao de mapa invalida para este modo.",
-    "map_locked_in_progress": "A votacao atual de '{dark_cyan}{0}{default}' esta travada no mapa '{dark_cyan}{1}{default}'.",
+    "map_selection_available_maps": "Mapas disponiveis para o modo '{dark_cyan}{0}{default}': {yellow}{1}{default}.",
     "started_chat": "Votacao iniciada: modo '{dark_cyan}{0}{default}', mapa '{dark_cyan}{1}{default}'. Votos {yellow}{2}/{3}{default} ({yellow}{4}{default} faltando), {yellow}{5}s{default} restantes. Digite {yellow}!{6}{default} para votar.",
     "registered_self": "Voto registrado: modo '{dark_cyan}{0}{default}', mapa '{dark_cyan}{1}{default}'. Faltam {yellow}{2}{default} votos, {yellow}{3}s{default} restantes.",
     "already_cast": "Voce ja votou nesta troca de modo.",

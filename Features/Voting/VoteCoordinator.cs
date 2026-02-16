@@ -225,6 +225,13 @@ internal sealed class VoteCoordinator
         return ModeSwitcher.ResolveTargetMap(mode);
     }
 
+    public bool TryResolveTargetMapForMode(
+        ModeDefinition mode,
+        string? requestedMap,
+        bool hasExplicitMapSelection,
+        out string targetMap) =>
+        TryResolveVoteTargetMap(mode, requestedMap, hasExplicitMapSelection, out targetMap);
+
     public void Reset() => _vote = null;
 
     public void CleanupExpiredVote() => CleanupExpiredVoteIfNeeded();
@@ -290,6 +297,8 @@ internal sealed class VoteCoordinator
         mode = fallbackMode;
         return true;
     }
+
+    public bool IsCurrentMapForTarget(string map) => IsCurrentMap(map);
 
     private static bool IsModeAlreadyActive(string? activeModeKey, ModeDefinition mode) =>
         !string.IsNullOrWhiteSpace(activeModeKey) &&
