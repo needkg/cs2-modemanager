@@ -1,4 +1,4 @@
-{
+﻿{
   "log": {
     "plugin_loaded": "Плагин загружен (hotReload={0}).",
     "plugin_unloaded": "Плагин выгружен (hotReload={0}).",
@@ -68,7 +68,12 @@
     "option_back_to_maps": "Назад к картам"
   },
   "rtv": {
-    "menu_opened": "Меню RTV открыто."
+    "menu_opened": "RTV menu opened.",
+    "disabled": "RTV is currently disabled by an admin.",
+    "toggle_usage": "Usage: {yellow}!rtv <enable|disable>{default}.",
+    "toggle_no_permission": "You do not have permission to use {yellow}!rtv enable/disable{default}.",
+    "toggle_enabled": "RTV has been {green}enabled{default}.",
+    "toggle_disabled": "RTV has been {red}disabled{default}."
   },
   "vote": {
     "console_scheduled": "Переключение запланировано: режим '{dark_cyan}{0}{default}' на карте '{dark_cyan}{1}{default}'.",
@@ -125,3 +130,4 @@
     "game_mode_invalid": "Modes['{0}'].GameMode некорректен: {1}"
   }
 }
+

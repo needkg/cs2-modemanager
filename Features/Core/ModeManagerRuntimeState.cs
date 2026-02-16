@@ -12,6 +12,7 @@ internal sealed class ModeManagerRuntimeState
     public bool BaseCommandsRegistered { get; set; }
 
     public DateTime CooldownUntilUtc { get; set; } = DateTime.MinValue;
+    public bool RtvEnabled { get; set; } = true;
 
     public PendingSwitch? PendingSwitch { get; set; }
     public string? ActiveModeKey { get; set; }

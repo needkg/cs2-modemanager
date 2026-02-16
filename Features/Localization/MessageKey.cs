@@ -57,6 +57,11 @@ internal enum MessageKey
     MenuOptionConfirmVote,
     MenuOptionBackToMaps,
     RtvMenuOpened,
+    RtvDisabled,
+    RtvToggleUsage,
+    RtvToggleNoPermission,
+    RtvToggleEnabled,
+    RtvToggleDisabled,
 
     // Voting
     VoteConsoleScheduled,

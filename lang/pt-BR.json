@@ -68,7 +68,12 @@
     "option_back_to_maps": "Voltar aos mapas"
   },
   "rtv": {
-    "menu_opened": "Menu RTV aberto."
+    "menu_opened": "Menu RTV aberto.",
+    "disabled": "O RTV esta desativado por um admin.",
+    "toggle_usage": "Uso: {yellow}!rtv <enable|disable>{default}.",
+    "toggle_no_permission": "Voce nao tem permissao para usar {yellow}!rtv enable/disable{default}.",
+    "toggle_enabled": "RTV foi {green}ativado{default}.",
+    "toggle_disabled": "RTV foi {red}desativado{default}."
   },
   "vote": {
     "console_scheduled": "Troca agendada: modo '{dark_cyan}{0}{default}' no mapa '{dark_cyan}{1}{default}'.",
