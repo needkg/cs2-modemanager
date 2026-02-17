@@ -79,22 +79,6 @@ if mode key is `retake`, command `!retake` is available.
 }
 ```
 
-## Native End-Match Map Vote (`gamemodes_server.txt`)
-
-If you want the built-in CS2 end-match vote to use each mode map pool:
-
-1. Set `"endmatch_map_vote_enabled": true`.
-2. Set `"endmatch_map_vote_file"` (default: `gamemodes_server.txt`).
-3. Keep each mode `map_pool` filled with the maps you want in the end-match vote.
-
-When a mode is applied, the plugin will:
-- create `gamemodes_server.txt` automatically from configured modes if the file does not exist
-- update/create a mode-specific `mapgroup` in `gamemodes_server.txt`
-- bind that mapgroup to the mode `game_type/game_mode`
-- run `mapgroup "<generated_group>"`
-- run `mp_endmatch_votenextmap 1`
-- run `mp_match_end_changelevel 1`
-
 ## Commands
 
 ### Player Commands
