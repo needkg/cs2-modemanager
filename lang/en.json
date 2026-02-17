@@ -20,6 +20,8 @@
   "log.end_match_map_vote_sync_success": "End-match vote sync updated '{0}' with mapgroup '{1}' ({2} maps).",
   "log.end_match_map_vote_sync_failed": "End-match vote sync failed for mode '{0}': {1}",
   "log.end_match_map_vote_sync_skipped": "End-match vote sync skipped for mode '{0}': {1}",
+  "log.debug_settings": "Debug settings: enabled={0}.",
+  "log.debug_server_command": "[debug] Executing server command: {0}",
   "log.menu_api_available": "MenuManagerAPI capability 'menu:api' is available.",
   "log.menu_api_missing": "MenuManagerAPI capability 'menu:api' is required but was not found. Plugin load aborted.",
   "cmd.desc_help": "Show help",

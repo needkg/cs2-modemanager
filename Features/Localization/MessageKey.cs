@@ -24,6 +24,8 @@ internal enum MessageKey
     LogEndMatchMapVoteSyncSuccess,
     LogEndMatchMapVoteSyncFailed,
     LogEndMatchMapVoteSyncSkipped,
+    LogDebugSettings,
+    LogDebugServerCommand,
     LogMenuApiAvailable,
     LogMenuApiMissing,
 

@@ -55,6 +55,7 @@ if mode key is `retake`, command `!retake` is available.
   "switch_cooldown_seconds": 20,
   "switch_delay_seconds": 5,
   "apply_game_type_mode": true,
+  "debug": false,
   "endmatch_map_vote_enabled": true,
   "endmatch_map_vote_file": "gamemodes_server.txt",
   "endmatch_map_vote_mapgroup_prefix": "mg_nmm_",
