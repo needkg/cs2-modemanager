@@ -66,6 +66,24 @@ public sealed class ModeManagerConfig : BasePluginConfig
     [JsonPropertyName("ApplyGameTypeMode")]
     public bool LegacyApplyGameTypeMode { set => ApplyGameTypeMode = value; }
 
+    [JsonPropertyName("endmatch_map_vote_enabled")]
+    public bool EndMatchMapVoteEnabled { get; set; } = true;
+
+    [JsonPropertyName("EndMatchMapVoteEnabled")]
+    public bool LegacyEndMatchMapVoteEnabled { set => EndMatchMapVoteEnabled = value; }
+
+    [JsonPropertyName("endmatch_map_vote_file")]
+    public string EndMatchMapVoteFile { get; set; } = "gamemodes_server.txt";
+
+    [JsonPropertyName("EndMatchMapVoteFile")]
+    public string? LegacyEndMatchMapVoteFile { set => EndMatchMapVoteFile = value ?? EndMatchMapVoteFile; }
+
+    [JsonPropertyName("endmatch_map_vote_mapgroup_prefix")]
+    public string EndMatchMapVoteMapgroupPrefix { get; set; } = "mg_nmm_";
+
+    [JsonPropertyName("EndMatchMapVoteMapgroupPrefix")]
+    public string? LegacyEndMatchMapVoteMapgroupPrefix { set => EndMatchMapVoteMapgroupPrefix = value ?? EndMatchMapVoteMapgroupPrefix; }
+
     [JsonPropertyName("modes")]
     public Dictionary<string, ModeDefinition> Modes { get; set; } =
         new(StringComparer.OrdinalIgnoreCase)

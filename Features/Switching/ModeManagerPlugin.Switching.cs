@@ -57,7 +57,15 @@ public sealed partial class ModeManagerPlugin
 
         LogInfo(Msg(MessageKey.LogApplyingMode, pending.Mode.Key, pending.Reason, execReason));
 
-        if (_switcher.TrySwitchTo(pending.Mode, Config, pending.TargetMap, out var targetMap, out var error))
+        var mapGroupName = TryPrepareEndMatchMapVoteForMode(pending.Mode);
+
+        if (_switcher.TrySwitchTo(
+                pending.Mode,
+                Config,
+                pending.TargetMap,
+                mapGroupName,
+                out var targetMap,
+                out var error))
         {
             _composition.State.StartCooldown(Config.SwitchCooldownSeconds);
             _activeModeKey = pending.Mode.Key;

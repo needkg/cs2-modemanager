@@ -14,6 +14,7 @@ internal sealed class ModeManagerFeatureServices
     public MenuApiBridge? MenuApiBridge { get; set; }
     public RtvMenuFlow? RtvMenuFlow { get; set; }
     public ResetCfgProvisioner? ResetCfgProvisioner { get; set; }
+    public GameModesServerProvisioner? GameModesServerProvisioner { get; set; }
 
     public VoteCoordinator GetOrCreateVoteCoordinator(
         Func<MessageKey, object?[], string> msg,
@@ -66,5 +67,18 @@ internal sealed class ModeManagerFeatureServices
             logError);
 
         return ResetCfgProvisioner;
+    }
+
+    public GameModesServerProvisioner GetOrCreateGameModesServerProvisioner(
+        Func<MessageKey, object?[], string> msg,
+        Action<string> logInfo,
+        Action<string> logError)
+    {
+        GameModesServerProvisioner ??= new GameModesServerProvisioner(
+            msg,
+            logInfo,
+            logError);
+
+        return GameModesServerProvisioner;
     }
 }

@@ -33,7 +33,7 @@ if mode key is `retake`, command `!retake` is available.
 ## Quick Installation
 
 1. Install [MenuManagerAPI](https://github.com/nickj609/MenuManagerAPI) and confirm the `menu:api` capability is available.
-2. Copy `nModeManager.dll` and `nModeManager.deps.json` to:
+2. Copy `nModeManager.dll`, `nModeManager.deps.json`, and `Gameloop.Vdf.dll` to:
 `addons/counterstrikesharp/plugins/nModeManager/`
 3. Copy the `lang` folder to:
 `addons/counterstrikesharp/plugins/nModeManager/lang/`
@@ -55,6 +55,9 @@ if mode key is `retake`, command `!retake` is available.
   "switch_cooldown_seconds": 20,
   "switch_delay_seconds": 5,
   "apply_game_type_mode": true,
+  "endmatch_map_vote_enabled": true,
+  "endmatch_map_vote_file": "gamemodes_server.txt",
+  "endmatch_map_vote_mapgroup_prefix": "mg_nmm_",
   "modes": {
     "retake": {
       "key": "retake",
@@ -74,6 +77,22 @@ if mode key is `retake`, command `!retake` is available.
   }
 }
 ```
+
+## Native End-Match Map Vote (`gamemodes_server.txt`)
+
+If you want the built-in CS2 end-match vote to use each mode map pool:
+
+1. Set `"endmatch_map_vote_enabled": true`.
+2. Set `"endmatch_map_vote_file"` (default: `gamemodes_server.txt`).
+3. Keep each mode `map_pool` filled with the maps you want in the end-match vote.
+
+When a mode is applied, the plugin will:
+- create `gamemodes_server.txt` automatically from configured modes if the file does not exist
+- update/create a mode-specific `mapgroup` in `gamemodes_server.txt`
+- bind that mapgroup to the mode `game_type/game_mode`
+- run `mapgroup "<generated_group>"`
+- run `mp_endmatch_votenextmap 1`
+- run `mp_match_end_changelevel 1`
 
 ## Commands
 

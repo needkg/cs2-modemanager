@@ -16,6 +16,7 @@ internal sealed class ModeSwitcher
         ModeDefinition mode,
         ModeManagerConfig config,
         string? targetMapOverride,
+        string? mapGroupOverride,
         out string targetMap,
         out string error)
     {
@@ -46,6 +47,16 @@ internal sealed class ModeSwitcher
 
                     if (mode.GameMode.HasValue)
                         _runner.Run($"game_mode {mode.GameMode.Value}");
+                }
+
+                if (config.EndMatchMapVoteEnabled)
+                {
+                    if (!string.IsNullOrWhiteSpace(mapGroupOverride))
+                        _runner.Run($"mapgroup \"{mapGroupOverride.Trim()}\"");
+
+                    _runner.Run("mp_endmatch_votenextmap 1");
+                    _runner.Run("mp_match_end_changelevel 1");
+                    _runner.Run("mp_match_end_restart 0");
                 }
 
                 targetMap = ResolveTargetMap(mode, targetMapOverride);
