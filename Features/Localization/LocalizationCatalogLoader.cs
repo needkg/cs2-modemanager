@@ -44,7 +44,7 @@ internal static class LocalizationCatalogLoader
                 return new Dictionary<MessageKey, string>();
 
             var parsedCatalog = new Dictionary<MessageKey, string>();
-            FlattenCatalog(document.RootElement, pathPrefix: null, parsedCatalog);
+            ParseFlatCatalog(document.RootElement, parsedCatalog);
 
             return parsedCatalog;
         }
@@ -54,54 +54,107 @@ internal static class LocalizationCatalogLoader
         }
     }
 
-    private static void FlattenCatalog(
-        JsonElement element,
-        string? pathPrefix,
+    private static void ParseFlatCatalog(
+        JsonElement root,
         IDictionary<MessageKey, string> catalog)
     {
-        if (element.ValueKind != JsonValueKind.Object)
+        if (root.ValueKind != JsonValueKind.Object)
             return;
 
-        foreach (var property in element.EnumerateObject())
+        foreach (var property in root.EnumerateObject())
         {
-            var path = string.IsNullOrWhiteSpace(pathPrefix)
-                ? property.Name
-                : $"{pathPrefix}_{property.Name}";
+            if (property.Value.ValueKind != JsonValueKind.String)
+                continue;
 
-            switch (property.Value.ValueKind)
-            {
-                case JsonValueKind.Object:
-                    FlattenCatalog(property.Value, path, catalog);
-                    break;
-                case JsonValueKind.String:
-                    var value = property.Value.GetString();
-                    if (string.IsNullOrWhiteSpace(value))
-                        break;
+            var value = property.Value.GetString();
+            if (string.IsNullOrWhiteSpace(value))
+                continue;
 
-                    if (!TryParseMessageKey(path, out var key))
-                        break;
+            if (!TryParseMessageKey(property.Name, out var key))
+                continue;
 
-                    catalog[key] = value;
-                    break;
-                default:
-                    break;
-            }
+            catalog[key] = value;
         }
     }
 
     private static bool TryParseMessageKey(string rawKey, out MessageKey key)
     {
-        if (Enum.TryParse<MessageKey>(rawKey, ignoreCase: true, out key))
-            return true;
+        key = default;
+        if (!IsNamespaceSnakeCaseKey(rawKey))
+            return false;
 
         var normalized = (rawKey ?? string.Empty)
             .Trim()
             .Replace(".", string.Empty, StringComparison.Ordinal)
-            .Replace("-", string.Empty, StringComparison.Ordinal)
-            .Replace("_", string.Empty, StringComparison.Ordinal)
-            .Replace(" ", string.Empty, StringComparison.Ordinal);
+            .Replace("_", string.Empty, StringComparison.Ordinal);
 
         return Enum.TryParse<MessageKey>(normalized, ignoreCase: true, out key);
+    }
+
+    private static bool IsNamespaceSnakeCaseKey(string key)
+    {
+        var raw = (key ?? string.Empty).Trim();
+        if (string.IsNullOrWhiteSpace(raw))
+            return false;
+
+        var firstDot = raw.IndexOf('.');
+        if (firstDot <= 0 || firstDot != raw.LastIndexOf('.'))
+            return false;
+
+        var namespaceToken = raw[..firstDot];
+        var valueToken = raw[(firstDot + 1)..];
+
+        return IsNamespaceToken(namespaceToken) && IsSnakeCaseToken(valueToken);
+    }
+
+    private static bool IsNamespaceToken(string token)
+    {
+        if (string.IsNullOrWhiteSpace(token))
+            return false;
+
+        if (token[0] < 'a' || token[0] > 'z')
+            return false;
+
+        for (var i = 1; i < token.Length; i++)
+        {
+            var ch = token[i];
+            var isLowerOrDigit = (ch >= 'a' && ch <= 'z') || (ch >= '0' && ch <= '9');
+            if (!isLowerOrDigit)
+                return false;
+        }
+
+        return true;
+    }
+
+    private static bool IsSnakeCaseToken(string token)
+    {
+        if (string.IsNullOrWhiteSpace(token))
+            return false;
+
+        if (token[0] == '_' || token[^1] == '_')
+            return false;
+
+        var previousUnderscore = false;
+        for (var i = 0; i < token.Length; i++)
+        {
+            var ch = token[i];
+            if (ch == '_')
+            {
+                if (previousUnderscore)
+                    return false;
+
+                previousUnderscore = true;
+                continue;
+            }
+
+            var isLowerOrDigit = (ch >= 'a' && ch <= 'z') || (ch >= '0' && ch <= '9');
+            if (!isLowerOrDigit)
+                return false;
+
+            previousUnderscore = false;
+        }
+
+        return true;
     }
 
     private static string? TryReadCatalogText(string languageCode)
