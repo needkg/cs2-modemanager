@@ -23,6 +23,7 @@ public sealed partial class ModeManagerPlugin
                 ConfigValidator.ValidateOrThrow(newConfig);
                 Config = newConfig;
                 ApplyLanguage(newConfig.Language);
+                LogDebug(MessageKey.LogDebugSettings, Config.DebugEnabled);
 
                 if (!_initialModeApplied &&
                     Config.ApplyInitialModeOnStartup &&

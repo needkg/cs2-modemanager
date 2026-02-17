@@ -20,6 +20,8 @@
   "log.end_match_map_vote_sync_success": "Sincronizacao de voto de fim de partida atualizou '{0}' com mapgroup '{1}' ({2} mapas).",
   "log.end_match_map_vote_sync_failed": "Falha na sincronizacao de voto de fim de partida para o modo '{0}': {1}",
   "log.end_match_map_vote_sync_skipped": "Sincronizacao de voto de fim de partida ignorada para o modo '{0}': {1}",
+  "log.debug_settings": "Configuracoes de debug: enabled={0}.",
+  "log.debug_server_command": "[debug] Executando comando no servidor: {0}",
   "log.menu_api_available": "Capability 'menu:api' da MenuManagerAPI esta disponivel.",
   "log.menu_api_missing": "Capability 'menu:api' da MenuManagerAPI e obrigatoria e nao foi encontrada. Carregamento do plugin abortado.",
   "cmd.desc_help": "Mostrar ajuda",
