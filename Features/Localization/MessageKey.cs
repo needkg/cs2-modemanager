@@ -113,8 +113,6 @@ internal enum MessageKey
     ValidationVoteDurationRange,
     ValidationSwitchCooldownRange,
     ValidationSwitchDelayRange,
-    ValidationEndMatchMapVoteFileRequired,
-    ValidationEndMatchMapVoteMapgroupPrefixInvalid,
     ValidationEndMatchMapVoteFileNotFound,
     ValidationModeNull,
     ValidationExecCommandRequired,

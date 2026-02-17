@@ -57,8 +57,6 @@ if mode key is `retake`, command `!retake` is available.
   "apply_game_type_mode": true,
   "debug": false,
   "endmatch_map_vote_enabled": true,
-  "endmatch_map_vote_file": "gamemodes_server.txt",
-  "endmatch_map_vote_mapgroup_prefix": "mg_nmm_",
   "modes": {
     "retake": {
       "key": "retake",
@@ -78,6 +76,8 @@ if mode key is `retake`, command `!retake` is available.
   }
 }
 ```
+
+For end-match map vote, `gamemodes_server.txt` and mapgroup prefix `mg_nmm_` are hardcoded.
 
 ## Commands
 

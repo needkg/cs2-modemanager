@@ -43,8 +43,6 @@ internal static class ConfigRulesValidator
         if (config.SwitchDelaySeconds < 0 || config.SwitchDelaySeconds > 600)
             throw new Exception(messages.Get(MessageKey.ValidationSwitchDelayRange));
 
-        ValidateEndMatchMapVoteSettings(config, messages);
-
         foreach (KeyValuePair<string, ModeDefinition> entry in config.Modes)
         {
             var modeKey = entry.Key;
@@ -145,25 +143,6 @@ internal static class ConfigRulesValidator
         }
     }
 
-    private static void ValidateEndMatchMapVoteSettings(ModeManagerConfig config, MessageLocalizer messages)
-    {
-        if (!config.EndMatchMapVoteEnabled)
-            return;
-
-        config.EndMatchMapVoteFile = (config.EndMatchMapVoteFile ?? string.Empty).Trim().Trim('"');
-        if (string.IsNullOrWhiteSpace(config.EndMatchMapVoteFile))
-            throw new Exception(messages.Get(MessageKey.ValidationEndMatchMapVoteFileRequired));
-
-        config.EndMatchMapVoteMapgroupPrefix = (config.EndMatchMapVoteMapgroupPrefix ?? string.Empty).Trim();
-        if (string.IsNullOrWhiteSpace(config.EndMatchMapVoteMapgroupPrefix) ||
-            IsInvalidMapGroupToken(config.EndMatchMapVoteMapgroupPrefix))
-        {
-            throw new Exception(messages.Format(
-                MessageKey.ValidationEndMatchMapVoteMapgroupPrefixInvalid,
-                config.EndMatchMapVoteMapgroupPrefix));
-        }
-    }
-
     private static void ValidateAndNormalizeMapPool(string modeKey, ModeDefinition mode, MessageLocalizer messages)
     {
         if (mode.MapPool == null || mode.MapPool.Count == 0)
@@ -192,6 +171,4 @@ internal static class ConfigRulesValidator
     }
 
     private static bool IsInvalidMapToken(string map) => map.Contains(' ') || map.Contains('"');
-
-    private static bool IsInvalidMapGroupToken(string mapGroup) => mapGroup.Contains(' ') || mapGroup.Contains('"');
 }

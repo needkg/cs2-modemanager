@@ -10,6 +10,9 @@ namespace ModeManager;
 
 internal sealed class GameModesServerProvisioner
 {
+    private const string EndMatchMapVoteFileName = "gamemodes_server.txt";
+    private const string EndMatchMapVoteMapgroupPrefix = "mg_nmm_";
+
     private static readonly IReadOnlyDictionary<int, string> _gameTypeNames = new Dictionary<int, string>
     {
         [0] = "classic",
@@ -55,7 +58,7 @@ internal sealed class GameModesServerProvisioner
         try
         {
             if (!ConfigPathDiscovery.TryResolveServerFilePathForWrite(
-                    config.EndMatchMapVoteFile,
+                    EndMatchMapVoteFileName,
                     out var filePath,
                     out var searchedPaths))
             {
@@ -87,7 +90,7 @@ internal sealed class GameModesServerProvisioner
                 return false;
             }
 
-            mapGroupName = BuildModeMapGroupName(config.EndMatchMapVoteMapgroupPrefix, mode.Key);
+            mapGroupName = BuildModeMapGroupName(mode.Key);
 
             var fileContent = File.ReadAllText(filePath, Encoding.UTF8);
             var parsedRoot = VdfConvert.Deserialize(fileContent);
@@ -98,7 +101,6 @@ internal sealed class GameModesServerProvisioner
             EnsureMapGroupBindingForGameMode(
                 rootObject,
                 mapGroupName,
-                config.EndMatchMapVoteMapgroupPrefix,
                 mode.GameType ?? 0,
                 mode.GameMode ?? 0);
 
@@ -176,7 +178,7 @@ internal sealed class GameModesServerProvisioner
             if (maps.Count == 0)
                 continue;
 
-            var mapGroupName = BuildModeMapGroupName(config.EndMatchMapVoteMapgroupPrefix, modeKey);
+            var mapGroupName = BuildModeMapGroupName(modeKey);
             EnsureMapGroup(root, mapGroupName, mode.DisplayName, maps);
         }
 
@@ -228,10 +230,9 @@ internal sealed class GameModesServerProvisioner
         return string.IsNullOrWhiteSpace(normalized) ? null : normalized;
     }
 
-    private static string BuildModeMapGroupName(string prefix, string modeKey)
+    private static string BuildModeMapGroupName(string modeKey)
     {
-        var normalizedPrefix = (prefix ?? string.Empty).Trim();
-        return $"{normalizedPrefix}{CommandNameSanitizer.ToSafeToken(modeKey)}";
+        return $"{EndMatchMapVoteMapgroupPrefix}{CommandNameSanitizer.ToSafeToken(modeKey)}";
     }
 
     private static void EnsureMapGroup(VObject root, string mapGroupName, string displayName, IReadOnlyList<string> maps)
@@ -255,7 +256,6 @@ internal sealed class GameModesServerProvisioner
     private static void EnsureMapGroupBindingForGameMode(
         VObject root,
         string mapGroupName,
-        string mapGroupPrefix,
         int gameType,
         int gameMode)
     {
@@ -265,7 +265,7 @@ internal sealed class GameModesServerProvisioner
         var gameModeNode = GetOrCreateGameModeNode(gameModes, gameType, gameMode);
         var mapGroupsMp = GetOrCreateObject(gameModeNode, "mapgroupsMP");
 
-        RemovePreviousModeMapGroups(mapGroupsMp, mapGroupPrefix, mapGroupName);
+        RemovePreviousModeMapGroups(mapGroupsMp, EndMatchMapVoteMapgroupPrefix, mapGroupName);
 
         var existingMapGroup = FindProperty(mapGroupsMp, mapGroupName);
         if (existingMapGroup != null)

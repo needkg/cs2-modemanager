@@ -42,12 +42,6 @@ public sealed class ModeManagerConfig : BasePluginConfig
     [JsonPropertyName("endmatch_map_vote_enabled")]
     public bool EndMatchMapVoteEnabled { get; set; } = true;
 
-    [JsonPropertyName("endmatch_map_vote_file")]
-    public string EndMatchMapVoteFile { get; set; } = "gamemodes_server.txt";
-
-    [JsonPropertyName("endmatch_map_vote_mapgroup_prefix")]
-    public string EndMatchMapVoteMapgroupPrefix { get; set; } = "mg_nmm_";
-
     [JsonPropertyName("modes")]
     public Dictionary<string, ModeDefinition> Modes { get; set; } =
         new(StringComparer.OrdinalIgnoreCase)
