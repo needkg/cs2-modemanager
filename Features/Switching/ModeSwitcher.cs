@@ -5,17 +5,20 @@ namespace ModeManager;
 internal sealed class ModeSwitcher
 {
     private readonly IServerCommandRunner _runner;
+    private readonly Action<string>? _debugLog;
     private readonly object _lock = new();
 
-    public ModeSwitcher(IServerCommandRunner runner)
+    public ModeSwitcher(IServerCommandRunner runner, Action<string>? debugLog = null)
     {
         _runner = runner;
+        _debugLog = debugLog;
     }
 
     public bool TrySwitchTo(
         ModeDefinition mode,
         ModeManagerConfig config,
         string? targetMapOverride,
+        string? mapGroupOverride,
         out string targetMap,
         out string error)
     {
@@ -23,33 +26,43 @@ internal sealed class ModeSwitcher
         {
             try
             {
-                _runner.Run(config.ResetCommand);
+                RunCommand(config.ResetCommand);
 
                 foreach (var pluginName in mode.PluginsToUnload)
                 {
                     if (!string.IsNullOrWhiteSpace(pluginName))
-                        _runner.Run($"css_plugins unload \"{pluginName}\"");
+                        RunCommand($"css_plugins unload \"{pluginName}\"");
                 }
 
                 foreach (var pluginName in mode.PluginsToLoad)
                 {
                     if (!string.IsNullOrWhiteSpace(pluginName))
-                        _runner.Run($"css_plugins load \"{pluginName}\"");
+                        RunCommand($"css_plugins load \"{pluginName}\"");
                 }
 
-                _runner.Run(mode.ExecCommand);
+                RunCommand(mode.ExecCommand);
 
                 if (config.ApplyGameTypeMode)
                 {
                     if (mode.GameType.HasValue)
-                        _runner.Run($"game_type {mode.GameType.Value}");
+                        RunCommand($"game_type {mode.GameType.Value}");
 
                     if (mode.GameMode.HasValue)
-                        _runner.Run($"game_mode {mode.GameMode.Value}");
+                        RunCommand($"game_mode {mode.GameMode.Value}");
+                }
+
+                if (config.EndMatchMapVoteEnabled)
+                {
+                    if (!string.IsNullOrWhiteSpace(mapGroupOverride))
+                        RunCommand($"mapgroup \"{mapGroupOverride.Trim()}\"");
+
+                    RunCommand("mp_endmatch_votenextmap 1");
+                    RunCommand("mp_match_end_changelevel 1");
+                    RunCommand("mp_match_end_restart 0");
                 }
 
                 targetMap = ResolveTargetMap(mode, targetMapOverride);
-                _runner.Run($"changelevel {targetMap}");
+                RunCommand($"changelevel {targetMap}");
 
                 error = string.Empty;
                 return true;
@@ -61,6 +74,12 @@ internal sealed class ModeSwitcher
                 return false;
             }
         }
+    }
+
+    private void RunCommand(string command)
+    {
+        _debugLog?.Invoke(command);
+        _runner.Run(command);
     }
 
     public static string ResolveTargetMap(ModeDefinition mode, string? targetMapOverride = null)

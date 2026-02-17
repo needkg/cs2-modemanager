@@ -9,6 +9,7 @@
   
   <ItemGroup>
   <PackageReference Include="CounterStrikeSharp.API" Version="1.0.284" />
+  <PackageReference Include="Gameloop.Vdf" Version="0.6.2" GeneratePathProperty="true" />
   <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" />
   </ItemGroup>
 
@@ -18,5 +19,16 @@
     </Content>
     <EmbeddedResource Include="lang\*.json" />
   </ItemGroup>
+
+  <Target Name="CopyGameloopVdfToOutput" AfterTargets="Build">
+    <ItemGroup>
+      <GameloopVdfBinary Include="$(PkgGameloop_Vdf)\lib\netstandard1.0\Gameloop.Vdf.dll" />
+    </ItemGroup>
+    <Copy
+      SourceFiles="@(GameloopVdfBinary)"
+      DestinationFolder="$(OutputPath)"
+      SkipUnchangedFiles="true"
+      Condition="Exists('%(GameloopVdfBinary.Identity)')" />
+  </Target>
 
 </Project>

@@ -33,7 +33,7 @@ if mode key is `retake`, command `!retake` is available.
 ## Quick Installation
 
 1. Install [MenuManagerAPI](https://github.com/nickj609/MenuManagerAPI) and confirm the `menu:api` capability is available.
-2. Copy `nModeManager.dll` and `nModeManager.deps.json` to:
+2. Copy `nModeManager.dll`, `nModeManager.deps.json`, and `Gameloop.Vdf.dll` to:
 `addons/counterstrikesharp/plugins/nModeManager/`
 3. Copy the `lang` folder to:
 `addons/counterstrikesharp/plugins/nModeManager/lang/`
@@ -55,6 +55,8 @@ if mode key is `retake`, command `!retake` is available.
   "switch_cooldown_seconds": 20,
   "switch_delay_seconds": 5,
   "apply_game_type_mode": true,
+  "debug": false,
+  "endmatch_map_vote_enabled": true,
   "modes": {
     "retake": {
       "key": "retake",
@@ -74,6 +76,8 @@ if mode key is `retake`, command `!retake` is available.
   }
 }
 ```
+
+For end-match map vote, `gamemodes_server.txt` and mapgroup prefix `mg_nmm_` are hardcoded.
 
 ## Commands
 
