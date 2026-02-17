@@ -6,37 +6,43 @@ namespace ModeManager;
 
 public sealed class ModeManagerConfig : BasePluginConfig
 {
-    [JsonPropertyName("Language")]
+    [JsonPropertyName("language")]
     public string Language { get; set; } = "en";
 
-    [JsonPropertyName("InitialModeKey")]
+    [JsonPropertyName("initial_mode_key")]
     public string? InitialModeKey { get; set; } = "retake";
 
-    [JsonPropertyName("ApplyInitialModeOnStartup")]
+    [JsonPropertyName("apply_initial_mode_on_startup")]
     public bool ApplyInitialModeOnStartup { get; set; } = true;
 
-    [JsonPropertyName("ResetCommand")]
+    [JsonPropertyName("reset_command")]
     public string ResetCommand { get; set; } = "exec nmodemanager/reset.cfg";
 
-    [JsonPropertyName("VoteRatio")]
+    [JsonPropertyName("vote_ratio")]
     public double VoteRatio { get; set; } = 0.6;
 
-    [JsonPropertyName("VoteMinPlayers")]
+    [JsonPropertyName("vote_min_players")]
     public int VoteMinPlayers { get; set; } = 1;
 
-    [JsonPropertyName("VoteDurationSeconds")]
+    [JsonPropertyName("vote_duration_seconds")]
     public int VoteDurationSeconds { get; set; } = 120;
 
-    [JsonPropertyName("SwitchCooldownSeconds")]
+    [JsonPropertyName("switch_cooldown_seconds")]
     public int SwitchCooldownSeconds { get; set; } = 20;
 
-    [JsonPropertyName("SwitchDelaySeconds")]
+    [JsonPropertyName("switch_delay_seconds")]
     public int SwitchDelaySeconds { get; set; } = 5;
 
-    [JsonPropertyName("ApplyGameTypeMode")]
+    [JsonPropertyName("apply_game_type_mode")]
     public bool ApplyGameTypeMode { get; set; } = true;
 
-    [JsonPropertyName("Modes")]
+    [JsonPropertyName("debug")]
+    public bool DebugEnabled { get; set; }
+
+    [JsonPropertyName("endmatch_map_vote_enabled")]
+    public bool EndMatchMapVoteEnabled { get; set; } = true;
+
+    [JsonPropertyName("modes")]
     public Dictionary<string, ModeDefinition> Modes { get; set; } =
         new(StringComparer.OrdinalIgnoreCase)
         {

@@ -21,6 +21,11 @@ internal enum MessageKey
     LogModeApplyFailed,
     LogResetCfgCreated,
     LogResetCfgCreateFailed,
+    LogEndMatchMapVoteSyncSuccess,
+    LogEndMatchMapVoteSyncFailed,
+    LogEndMatchMapVoteSyncSkipped,
+    LogDebugSettings,
+    LogDebugServerCommand,
     LogMenuApiAvailable,
     LogMenuApiMissing,
 
@@ -57,6 +62,11 @@ internal enum MessageKey
     MenuOptionConfirmVote,
     MenuOptionBackToMaps,
     RtvMenuOpened,
+    RtvDisabled,
+    RtvToggleUsage,
+    RtvToggleNoPermission,
+    RtvToggleEnabled,
+    RtvToggleDisabled,
 
     // Voting
     VoteConsoleScheduled,
@@ -103,6 +113,7 @@ internal enum MessageKey
     ValidationVoteDurationRange,
     ValidationSwitchCooldownRange,
     ValidationSwitchDelayRange,
+    ValidationEndMatchMapVoteFileNotFound,
     ValidationModeNull,
     ValidationExecCommandRequired,
     ValidationPluginToLoadNotFound,

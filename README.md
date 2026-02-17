@@ -33,7 +33,7 @@ if mode key is `retake`, command `!retake` is available.
 ## Quick Installation
 
 1. Install [MenuManagerAPI](https://github.com/nickj609/MenuManagerAPI) and confirm the `menu:api` capability is available.
-2. Copy `nModeManager.dll` and `nModeManager.deps.json` to:
+2. Copy `nModeManager.dll`, `nModeManager.deps.json`, and `Gameloop.Vdf.dll` to:
 `addons/counterstrikesharp/plugins/nModeManager/`
 3. Copy the `lang` folder to:
 `addons/counterstrikesharp/plugins/nModeManager/lang/`
@@ -45,35 +45,39 @@ if mode key is `retake`, command `!retake` is available.
 
 ```json
 {
-  "Language": "en",
-  "InitialModeKey": "retake",
-  "ApplyInitialModeOnStartup": true,
-  "ResetCommand": "exec nmodemanager/reset.cfg",
-  "VoteRatio": 0.6,
-  "VoteMinPlayers": 1,
-  "VoteDurationSeconds": 120,
-  "SwitchCooldownSeconds": 20,
-  "SwitchDelaySeconds": 5,
-  "ApplyGameTypeMode": true,
-  "Modes": {
+  "language": "en",
+  "initial_mode_key": "retake",
+  "apply_initial_mode_on_startup": true,
+  "reset_command": "exec nmodemanager/reset.cfg",
+  "vote_ratio": 0.6,
+  "vote_min_players": 1,
+  "vote_duration_seconds": 120,
+  "switch_cooldown_seconds": 20,
+  "switch_delay_seconds": 5,
+  "apply_game_type_mode": true,
+  "debug": false,
+  "endmatch_map_vote_enabled": true,
+  "modes": {
     "retake": {
-      "Key": "retake",
-      "DisplayName": "Retake",
-      "ExecCommand": "exec nmodemanager/retake.cfg",
-      "DefaultMap": "de_inferno",
-      "MapPool": [
+      "key": "retake",
+      "display_name": "Retake",
+      "exec_command": "exec nmodemanager/retake.cfg",
+      "default_map": "de_inferno",
+      "map_pool": [
         "de_inferno",
         "de_nuke",
         "de_mirage"
       ],
-      "GameType": 0,
-      "GameMode": 0,
-      "PluginsToUnload": [],
-      "PluginsToLoad": []
+      "game_type": 0,
+      "game_mode": 0,
+      "plugins_to_unload": [],
+      "plugins_to_load": []
     }
   }
 }
 ```
+
+For end-match map vote, `gamemodes_server.txt` and mapgroup prefix `mg_nmm_` are hardcoded.
 
 ## Commands
 
@@ -91,6 +95,7 @@ if mode key is `retake`, command `!retake` is available.
 | Command | Description |
 |---|---|
 | `!mode <mode_key> [map]` | Force a mode switch with optional map |
+| `!rtv <enable\|disable>` | Enable or disable RTV voting globally |
 | `!nmm_reload` | Reload config and rebuild dynamic mode commands |
 
 ## Voting Rules
@@ -107,7 +112,7 @@ Important:
 - one vote per player identity
 - bots and HLTV are excluded from eligible player count
 - required votes are calculated as:
-`ceil(eligible_players * VoteRatio)`
+`ceil(eligible_players * vote_ratio)`
 - while a vote is active, mode choice is locked to the active vote mode
 - map target can still be adjusted within that active vote mode
 
@@ -129,16 +134,15 @@ Supported languages:
 - `en`
 - `pt-BR`
 - `es`
-- `ru`
 
 Set language in config:
-`"Language": "en"`
+`"language": "en"`
 
 ## Practical Tips
 
-- Keep `MapPool` populated for each mode to improve vote UX.
-- Use `SwitchDelaySeconds` to give players warning before switch.
-- Use `SwitchCooldownSeconds` to prevent switch spam.
+- Keep `map_pool` populated for each mode to improve vote UX.
+- Use `switch_delay_seconds` to give players warning before switch.
+- Use `switch_cooldown_seconds` to prevent switch spam.
 - Run `!nmm_reload` after each config change.
 
 ## Troubleshooting
@@ -153,7 +157,7 @@ Player must have `@css/root` permission.
 
 ### Dynamic mode command is missing
 
-Check mode key under `Modes` and run `!nmm_reload`.
+Check mode key under `modes` and run `!nmm_reload`.
 
 ## License
 

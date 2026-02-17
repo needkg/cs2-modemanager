@@ -14,6 +14,12 @@ public sealed partial class ModeManagerPlugin
 
     private void HandleVote(CCSPlayerController? player, CommandInfo cmd, ModeDefinition mode)
     {
+        if (!_rtvEnabled)
+        {
+            ReplyTone(cmd, MessageKey.RtvDisabled);
+            return;
+        }
+
         Votes.HandleVoteRequest(
             player,
             mode,
@@ -30,6 +36,12 @@ public sealed partial class ModeManagerPlugin
     {
         if (!player.IsValid)
             return;
+
+        if (!_rtvEnabled)
+        {
+            TellTone(player, MessageKey.RtvDisabled);
+            return;
+        }
 
         Votes.HandleVoteRequest(
             player,

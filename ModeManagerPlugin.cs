@@ -40,6 +40,12 @@ public sealed partial class ModeManagerPlugin : BasePlugin, IPluginConfig<ModeMa
         set => _composition.State.CooldownUntilUtc = value;
     }
 
+    private bool _rtvEnabled
+    {
+        get => _composition.State.RtvEnabled;
+        set => _composition.State.RtvEnabled = value;
+    }
+
     private PendingSwitch? _pending
     {
         get => _composition.State.PendingSwitch;

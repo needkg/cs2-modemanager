@@ -8,6 +8,15 @@ public sealed partial class ModeManagerPlugin
 {
     private static void LogInfo(string msg) => Server.PrintToConsole($"[nModeManager] {msg}");
     private static void LogError(string msg) => Server.PrintToConsole($"[nModeManager:ERROR] {msg}");
+    private bool IsDebugEnabled => Config.DebugEnabled;
+
+    private void LogDebug(MessageKey key, params object?[] args)
+    {
+        if (!IsDebugEnabled)
+            return;
+
+        LogInfo(Msg(key, args));
+    }
 
     private void ChatAll(string msg)
     {

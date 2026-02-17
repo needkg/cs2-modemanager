@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace ModeManager;
 
@@ -26,6 +27,53 @@ internal static class ConfigPathDiscovery
 
         foreach (var root in EnumerateCandidateRootsDistinct())
             yield return GetCanonicalPathForRoot(root, moduleName);
+    }
+
+    public static bool TryResolveServerFilePath(
+        string relativeOrAbsolutePath,
+        out string resolvedPath,
+        out string searchedPaths)
+    {
+        resolvedPath = string.Empty;
+
+        var candidates = GetCandidateServerFilePaths(relativeOrAbsolutePath);
+        searchedPaths = candidates.Count == 0 ? "(none)" : string.Join(" | ", candidates);
+
+        foreach (var candidate in candidates)
+        {
+            if (!File.Exists(candidate))
+                continue;
+
+            resolvedPath = candidate;
+            return true;
+        }
+
+        return false;
+    }
+
+    public static bool TryResolveServerFilePathForWrite(
+        string relativeOrAbsolutePath,
+        out string resolvedPath,
+        out string searchedPaths)
+    {
+        resolvedPath = string.Empty;
+
+        var candidates = GetCandidateServerFilePaths(relativeOrAbsolutePath);
+        searchedPaths = candidates.Count == 0 ? "(none)" : string.Join(" | ", candidates);
+        if (candidates.Count == 0)
+            return false;
+
+        foreach (var candidate in candidates)
+        {
+            if (!File.Exists(candidate))
+                continue;
+
+            resolvedPath = candidate;
+            return true;
+        }
+
+        resolvedPath = candidates[0];
+        return true;
     }
 
     public static bool TryResolvePluginDll(string pluginName, out string resolvedPath, out string searchedPaths)
@@ -83,6 +131,74 @@ internal static class ConfigPathDiscovery
     private static string NormalizePluginName(string pluginName)
     {
         return (pluginName ?? string.Empty).Trim().Trim('"');
+    }
+
+    private static List<string> GetCandidateServerFilePaths(string relativeOrAbsolutePath)
+    {
+        var normalized = (relativeOrAbsolutePath ?? string.Empty).Trim().Trim('"');
+        if (string.IsNullOrWhiteSpace(normalized))
+            return new List<string>();
+
+        if (Path.IsPathRooted(normalized) || normalized.Contains(':'))
+        {
+            try
+            {
+                return new List<string> { Path.GetFullPath(normalized) };
+            }
+            catch
+            {
+                return new List<string> { normalized };
+            }
+        }
+
+        var normalizedRelative = normalized
+            .TrimStart('/', '\\')
+            .Replace('/', Path.DirectorySeparatorChar)
+            .Replace('\\', Path.DirectorySeparatorChar);
+
+        var candidates = new List<(string Path, int Score)>();
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var root in EnumerateCandidateRootsDistinct())
+        {
+            try
+            {
+                var candidate = Path.GetFullPath(Path.Combine(root, normalizedRelative));
+                if (!seen.Add(candidate))
+                    continue;
+
+                var score = ComputeServerFileCandidateScore(root);
+                candidates.Add((candidate, score));
+            }
+            catch
+            {
+                // Ignore malformed candidate paths.
+            }
+        }
+
+        return candidates
+            .OrderBy(item => item.Score)
+            .ThenBy(item => item.Path.Length)
+            .Select(item => item.Path)
+            .ToList();
+    }
+
+    private static int ComputeServerFileCandidateScore(string root)
+    {
+        var score = 100;
+        var normalizedRoot = root.Replace('\\', '/');
+
+        if (normalizedRoot.EndsWith("/csgo", StringComparison.OrdinalIgnoreCase) ||
+            normalizedRoot.Contains("/csgo/", StringComparison.OrdinalIgnoreCase))
+            score -= 70;
+
+        if (Directory.Exists(Path.Combine(root, "cfg")))
+            score -= 40;
+
+        if (Directory.Exists(Path.Combine(root, "addons", "counterstrikesharp")))
+            score -= 30;
+
+        return score;
     }
 
     private static IEnumerable<string> EnumerateCandidateRootsDistinct()

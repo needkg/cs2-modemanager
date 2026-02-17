@@ -5,7 +5,7 @@ namespace ModeManager;
 
 internal static class LocalizationLanguage
 {
-    private static readonly string[] _supportedLanguages = { "en", "pt-BR", "es", "ru" };
+    private static readonly string[] _supportedLanguages = { "en", "pt-BR", "es" };
 
     public static IReadOnlyList<string> SupportedLanguages => _supportedLanguages;
 
@@ -33,12 +33,6 @@ internal static class LocalizationLanguage
         if (trimmed.StartsWith("es", StringComparison.OrdinalIgnoreCase))
         {
             normalized = "es";
-            return true;
-        }
-
-        if (trimmed.StartsWith("ru", StringComparison.OrdinalIgnoreCase))
-        {
-            normalized = "ru";
             return true;
         }
 

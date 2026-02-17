@@ -10,11 +10,14 @@ public sealed partial class ModeManagerPlugin
         Config = config;
         _composition.State.SeedActiveModeFromConfigIfUnknown(config);
         ApplyLanguage(config.Language);
+        LogDebug(MessageKey.LogDebugSettings, Config.DebugEnabled);
     }
 
     public override void Load(bool hotReload)
     {
-        _switcher = new ModeSwitcher(new ServerCommandRunner());
+        _switcher = new ModeSwitcher(
+            new ServerCommandRunner(),
+            command => LogDebug(MessageKey.LogDebugServerCommand, command));
         EnsureResetCfgFileExists();
         LogInfo(Msg(MessageKey.LogPluginLoaded, hotReload));
     }
